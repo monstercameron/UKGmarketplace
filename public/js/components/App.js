@@ -516,7 +516,7 @@ export const App = ({ html }) => {
       <nav 
         className="sticky top-0 z-50 backdrop-blur-md shadow-lg transition-all duration-200"
         style=${{ 
-          backgroundColor: darkMode ? 'rgba(0, 48, 135, 0.95)' : 'rgba(0, 48, 135, 0.95)',
+          backgroundColor: darkMode ? 'rgba(16, 68, 3, 0.95)' : 'rgba(61, 167, 0, 0.95)',
           borderBottom: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)')
         }}
       >
@@ -538,7 +538,7 @@ export const App = ({ html }) => {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white bg-opacity-20 backdrop-blur-sm">
                   <span className="material-icons text-2xl">storefront</span>
                 </div>
-                <h1 className="text-xl font-bold tracking-tight">UKG Market</h1>
+                <h1 className="text-xl font-bold tracking-tight">UKG Market Place</h1>
               </a>
             </div>
 
