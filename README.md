@@ -1,259 +1,77 @@
-# UKG Marketplace API
+# UKG Marketplace
 
-A comprehensive marketplace API built with Node.js, Express, and SQLite.
+**Transform the way your organization buys, sells, and connects with UKG Marketplace - the premier internal marketplace solution for modern enterprises.**
 
-## Features
+![UKG Marketplace Banner](https://via.placeholder.com/1200x300)
 
-- Item management with categories
-- Messaging system between users
-- Image upload support
-- Payment method integration
-- Search and filtering capabilities
-- Real-time notifications
+## 🚀 Elevate Your Organization's Exchange Economy
 
-## Prerequisites
+UKG Marketplace is a powerful platform that revolutionizes how employees and departments exchange goods, services, and resources within your organization. Built with modern technologies, UKG Marketplace creates a vibrant internal economy that drives efficiency, sustainability, and community.
 
-- Node.js >= 18.0.0
-- npm or yarn
+## ✨ Key Features
 
-## Installation
+### 🛒 Comprehensive Marketplace Experience
+- **Intuitive Item Listings** - Create beautiful, detailed listings with multiple images, rich descriptions, and customizable attributes
+- **Category Organization** - Browse through a hierarchical category system that makes finding exactly what you need effortless
+- **Smart Search & Filtering** - Powerful search capabilities with filters for price, condition, location, and more
+- **Responsive Design** - Perfect experience on any device - desktop, tablet, or mobile
 
-1. Clone the repository:
+### 📱 User-Centric Experience
+- **No Account Required** - Simple email-based identification system eliminates registration barriers
+- **Item Watching** - Subscribe to items of interest and receive updates on price changes or availability
+- **Customizable Notifications** - Choose your preferred notification frequency: real-time, daily, or weekly digests
+- **Management Keys** - Secure, token-based system for managing your listings without passwords
+
+### 💳 Flexible Payment Options
+- **Multiple Payment Methods** - Support for various internal payment mechanisms
+- **Secure Transactions** - Built with security best practices to protect sensitive information
+- **Payment Integration** - Seamlessly connects with your organization's existing financial systems
+
+### 🔧 Enterprise-Ready Architecture
+- **Scalable Backend** - Handles thousands of listings and users with minimal resource requirements
+- **Easy Deployment** - Simple setup process with clear documentation
+- **Customizable** - Adapt the marketplace to your organization's branding and specific needs
+- **API-First Design** - Comprehensive API for integration with other internal systems
+
+## 🌟 Why Choose UKG Marketplace?
+
+### For Employees
+- **Declutter & Earn** - Turn unused items into cash or exchange them for things you need
+- **Find Resources** - Discover equipment, supplies, and services available within your organization
+- **Build Connections** - Create meaningful workplace relationships through marketplace interactions
+- **Save Time** - Quick and easy access to resources without lengthy procurement processes
+
+### For Organizations
+- **Promote Sustainability** - Reduce waste by encouraging reuse and repurposing of resources
+- **Cost Savings** - Decrease procurement expenses by utilizing existing internal resources
+- **Enhanced Collaboration** - Foster cross-departmental connections and resource sharing
+- **Improved Employee Experience** - Provide a valuable service that enhances workplace satisfaction
+
+## 🚀 Getting Started
+
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/ukg-marketplace.git
-cd ukg-marketplace
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
-```
 
-3. Create a `.env` file in the root directory with the following variables:
-```env
-PORT=3000
-DB_PATH=./database.sqlite
-SMTP_HOST=your_smtp_host
-SMTP_PORT=587
-SMTP_USER=your_smtp_user
-SMTP_PASS=your_smtp_password
-```
+# Configure your environment
+cp .env.example .env
 
-4. Initialize the database:
-```bash
+# Initialize the database
 npm run db:init-and-seed
-```
 
-## Scripts
-
-The project includes various utility scripts in the `scripts/` directory:
-
-- Database management (initialization, seeding, resetting)
-- Environment configuration
-- Testing utilities
-
-For more information, see the [scripts README](./scripts/README.md).
-
-## Running the Application
-
-Development mode:
-```bash
-npm run dev
-```
-
-Production mode:
-```bash
-npm start
-```
-
-## API Documentation
-
-### Items
-
-#### Create Item
-- **POST** `/api/v1/items`
-- Body:
-```json
-{
-  "categoryId": "number",
-  "title": "string",
-  "description": "string",
-  "price": "number",
-  "condition": "string",
-  "location": "string",
-  "paymentMethods": ["number"]
-}
-```
-- Response includes a `managementKey` that should be saved for future item management
-
-#### Get Item
-- **GET** `/api/v1/items/:id`
-
-#### Update Item
-- **PUT** `/api/v1/items/:id`
-- Headers: `X-Management-Key: <management_key>`
-- Body: Same as create item (all fields optional)
-
-#### Delete Item
-- **DELETE** `/api/v1/items/:id`
-- Headers: `X-Management-Key: <management_key>`
-
-#### Add Item Image
-- **POST** `/api/v1/items/:id/images`
-- Headers: `X-Management-Key: <management_key>`
-- Body:
-```json
-{
-  "imageUrl": "string",
-  "isPrimary": "boolean"
-}
-```
-
-#### Remove Item Image
-- **DELETE** `/api/v1/items/:id/images/:imageId`
-- Headers: `X-Management-Key: <management_key>`
-
-### Categories
-
-#### Get Categories
-- **GET** `/api/v1/categories`
-
-#### Get Category Tree
-- **GET** `/api/v1/categories/tree`
-
-### Messages
-
-#### Send Message
-- **POST** `/api/v1/messages`
-- Body:
-```json
-{
-  "senderEmail": "string",
-  "receiverEmail": "string",
-  "itemId": "number",
-  "message": "string"
-}
-```
-
-#### Get Conversations
-- **GET** `/api/v1/messages/conversations?email=<email>`
-
-#### Get Conversation
-- **GET** `/api/v1/messages/conversation/:itemId/:email?email=<current_email>`
-
-#### Mark Message as Read
-- **PUT** `/api/v1/messages/:messageId/read?email=<email>`
-
-#### Mark Conversation as Read
-- **PUT** `/api/v1/messages/conversation/:itemId/:email/read?currentEmail=<current_email>`
-
-#### Get Unread Count
-- **GET** `/api/v1/messages/unread/count?email=<email>`
-
-#### Delete Message
-- **DELETE** `/api/v1/messages/:messageId?email=<email>`
-
-#### Delete Conversation
-- **DELETE** `/api/v1/messages/conversation/:itemId/:email?currentEmail=<current_email>`
-
-## Error Handling
-
-The API uses a consistent error response format:
-
-```json
-{
-  "error": "string",
-  "message": "string"
-}
-```
-
-Common HTTP status codes:
-- 200: Success
-- 201: Created
-- 400: Bad Request
-- 401: Unauthorized (Invalid management key)
-- 404: Not Found
-- 500: Internal Server Error
-
-## Security
-
-- Management key-based item access control
-- CORS enabled
-- Helmet security headers
-- Input validation
-- Rate limiting (coming soon)
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the ISC License.
-
-## Setup
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Create a `.env` file in the root directory with the following variables:
-```
-PORT=3000
-NODE_ENV=development
-SMTP_HOST=your-smtp-host
-SMTP_PORT=your-smtp-port
-SMTP_USER=your-email
-SMTP_PASS=your-password
-DB_PATH=./database.sqlite
-```
-
-## Development
-
-Run the development server with hot-reloading and Tailwind CSS watching:
-```bash
+# Start the development server
 npm run dev:full
 ```
 
-Or run individual commands:
-- `npm run dev` - Start development server with nodemon
-- `npm run watch:css` - Watch and compile Tailwind CSS
-- `npm run build:css` - Build and minify CSS for production
-- `npm start` - Start production server
+## 📚 Documentation
 
-## API Endpoints
+For detailed documentation on setup, configuration, and API endpoints, please visit our [Documentation Portal](https://github.com/yourusername/ukg-marketplace/wiki) or refer to the `/docs` directory.
 
-### Items
+---
 
-- `POST /api/items` - Create a new item
-- `GET /api/items` - Get all items
-- `GET /api/items/:id` - Get a specific item
-- `PUT /api/items/:id` - Update an item
-- `DELETE /api/items/:id` - Delete an item
-
-### Subscriptions
-
-- `POST /api/subscribe` - Subscribe to notifications
-  - Body: `{ "email": "user@example.com", "frequency": "realtime|daily|weekly" }`
-
-### Watching Items
-
-- `POST /api/watch/:id` - Watch a specific item
-  - Body: `{ "email": "user@example.com" }`
-
-## Frontend Integration
-
-The API serves static files from the `public` directory. Place your React application build files there for deployment.
-
-### CSS Structure
-
-Tailwind CSS is configured and ready to use. The main CSS file is located at:
-- Source: `public/css/styles.css`
-- Output: `public/css/output.css`
-
-Include the output CSS file in your HTML: 
+<p align="center">
+  <strong>UKG Marketplace</strong> - Connecting Resources, Empowering People
+</p>

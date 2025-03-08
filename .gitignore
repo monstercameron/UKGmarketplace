@@ -46,3 +46,7 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Compressed files
+*.br
+*.gz
