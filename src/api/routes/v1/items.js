@@ -111,12 +111,11 @@ router.get('/', async (req, res) => {
  * @swagger
  * /api/v1/items/search:
  *   get:
- *     summary: Search items
+ *     summary: Search for items
  *     tags: [Items]
  *     parameters:
  *       - in: query
  *         name: q
- *         required: true
  *         schema:
  *           type: string
  *         description: Search query
@@ -130,70 +129,74 @@ router.get('/', async (req, res) => {
  *         schema:
  *           type: integer
  *         description: Items per page (default 10)
- *       - in: query
- *         name: sort
- *         schema:
- *           type: string
- *         description: Sort field
- *       - in: query
- *         name: order
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *         description: Sort order
  *     responses:
  *       200:
- *         description: Search results retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Item'
- *       400:
- *         $ref: '#/components/responses/Error400'
+ *         description: List of items matching the search query
+ *       500:
+ *         description: Server error
  */
 router.get('/search', async (req, res) => {
-    try {
-        const query = req.query.q;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const sort = req.query.sort || 'created_at';
-        const order = req.query.order || 'DESC';
-        
-        // Get total count for pagination
-        let totalCount = 0;
-        try {
-            const [countResult, countError] = await validateAsync(
-                itemService.countItemsBySearch(query),
-                httpError(400, 'Failed to count search results')
-            );
-            
-            if (!countError && countResult) {
-                totalCount = countResult.count;
-            }
-        } catch (countErr) {
-            console.error('Error counting search results:', countErr);
-            // Continue with the request even if count fails
-        }
-        
-        // Get paginated search results
-        const [result, error] = await validateAsync(
-            itemService.searchItems(query, { page, limit, sort, order }),
-            httpError(400, 'Failed to search items')
-        );
-        
-        if (error) {
-            return res.status(error.status).json(error);
-        }
-        
-        // Set total count in header for client-side pagination
-        res.setHeader('X-Total-Count', totalCount);
-        res.json(result);
-    } catch (err) {
-        console.error('Error in GET /items/search:', err);
-        res.status(500).json({ error: 'Internal server error' });
+  try {
+    // Get search parameters
+    const query = req.query.q || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const categoryId = req.query.category ? parseInt(req.query.category) : null;
+    
+    // Get all items (we'll filter them in memory)
+    const [items, error] = await itemService.getAllItems();
+    
+    if (error) {
+      console.error('Error getting items:', error);
+      return res.status(error.status || 500).json({ error: error.message || 'Failed to fetch items' });
     }
+    
+    if (!items || !Array.isArray(items)) {
+      console.error('Invalid items result:', items);
+      return res.status(500).json({ error: 'Invalid items data returned from service' });
+    }
+    
+    // Apply category filter if specified
+    let filteredItems = items;
+    if (categoryId) {
+      filteredItems = items.filter(item => item.category_id === categoryId);
+    }
+    
+    // If no query, just return paginated results
+    if (!query || query.trim() === '') {
+      const totalItems = filteredItems.length;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedItems = filteredItems.slice(startIndex, endIndex);
+      
+      res.setHeader('X-Total-Count', totalItems);
+      return res.json(paginatedItems);
+    }
+    
+    // Simple search implementation - filter items that contain the query in title or description
+    const searchResults = filteredItems.filter(item => {
+      const title = (item.title || '').toLowerCase();
+      const description = (item.description || '').toLowerCase();
+      const category = (item.category_name || '').toLowerCase();
+      const searchQuery = query.toLowerCase();
+      
+      return title.includes(searchQuery) || 
+             description.includes(searchQuery) || 
+             category.includes(searchQuery);
+    });
+    
+    // Paginate results
+    const totalItems = searchResults.length;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedItems = searchResults.slice(startIndex, endIndex);
+    
+    res.setHeader('X-Total-Count', totalItems);
+    return res.json(paginatedItems);
+  } catch (err) {
+    console.error('Search error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 /**
@@ -219,17 +222,6 @@ router.get('/search', async (req, res) => {
  *         schema:
  *           type: integer
  *         description: Items per page (default 10)
- *       - in: query
- *         name: sort
- *         schema:
- *           type: string
- *         description: Sort field
- *       - in: query
- *         name: order
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *         description: Sort order
  *     responses:
  *       200:
  *         description: Items retrieved successfully
@@ -244,11 +236,9 @@ router.get('/search', async (req, res) => {
  */
 router.get('/category/:categoryId', async (req, res) => {
     try {
-        const { categoryId } = req.params;
+        const categoryId = req.params.categoryId;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const sort = req.query.sort || 'created_at';
-        const order = req.query.order || 'DESC';
         
         // Get total count for pagination
         let totalCount = 0;
@@ -268,8 +258,8 @@ router.get('/category/:categoryId', async (req, res) => {
         
         // Get paginated items
         const [result, error] = await validateAsync(
-            itemService.findItemsByCategory(categoryId, { page, limit, sort, order }),
-            httpError(400, 'Failed to fetch items')
+            itemService.findItemsByCategory(categoryId, { page, limit }),
+            httpError(400, 'Failed to get items by category')
         );
         
         if (error) {

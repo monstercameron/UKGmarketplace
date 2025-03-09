@@ -9,6 +9,7 @@ import { Breadcrumbs } from './Breadcrumbs.js';
 import { NewItemForm } from './NewItemForm.js';
 import { EditItemForm } from './EditItemForm.js';
 import { AdminPanel } from './AdminPanel.js';
+import { SearchPage } from './SearchPage.js';
 import { categoryIcons, categoryToIconKey } from '../utils/categoryIcons.js';
 
 const CategoryHeader = ({ category, categoryId, onClose, darkMode, html }) => {
@@ -211,12 +212,18 @@ export const App = ({ html }) => {
         return;
       }
 
-      let endpoint = category 
-        ? `/api/v1/items/category/${category}`
-        : '/api/v1/items';
+      let endpoint;
       
       if (search) {
-        endpoint += `?search=${encodeURIComponent(search)}`;
+        // Use the dedicated search endpoint
+        endpoint = `/api/v1/items/search?q=${encodeURIComponent(search)}`;
+        if (category) {
+          endpoint += `&category=${category}`;
+        }
+      } else if (category) {
+        endpoint = `/api/v1/items/category/${category}`;
+      } else {
+        endpoint = '/api/v1/items';
       }
 
       const response = await fetchWithTimeout(endpoint);
@@ -239,7 +246,7 @@ export const App = ({ html }) => {
       setListData(normalizedData);
     } catch (err) {
       console.error('Error fetching items:', err);
-      setError(err.message);
+      setError('Failed to load items. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -250,6 +257,14 @@ export const App = ({ html }) => {
     const handleHashChange = () => {
       const route = getRouteFromHash();
       setCurrentRoute(route);
+      
+      // Don't fetch items if we're on a search route - the SearchPage component will handle that
+      if (route.startsWith('/search/')) {
+        // Just extract the search query from the route and set it
+        const query = decodeURIComponent(route.substring('/search/'.length));
+        setSearchQuery(query);
+        return;
+      }
       
       if (route === '/') {
         setSelectedCategory(null);
@@ -262,25 +277,14 @@ export const App = ({ html }) => {
         
         // Fetch category name if not already set
         if (!selectedCategoryName) {
-          // Try to find the category name from the API
           fetch(`/api/v1/categories/${categoryId}`)
-            .then(response => {
-              if (response.ok) return response.json();
-              throw new Error('Failed to fetch category');
-            })
+            .then(response => response.json())
             .then(data => {
               if (data && data.name) {
                 setSelectedCategoryName(data.name);
-              } else {
-                // Fallback to a generic name
-                setSelectedCategoryName('Category ' + categoryId);
               }
             })
-            .catch(err => {
-              console.error('Error fetching category name:', err);
-              // Fallback to a generic name
-              setSelectedCategoryName('Category ' + categoryId);
-            });
+            .catch(err => console.error('Error fetching category name:', err));
         }
         
         setListData([]); // Clear current list
@@ -289,18 +293,23 @@ export const App = ({ html }) => {
         const itemId = route.split('/').pop();
         fetchItemDetails(itemId);
       } else if (route.startsWith('/edit-item/')) {
-        const itemId = route.split('/').pop();
+        const itemId = route.split('/').pop().split('?')[0];
+        const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+        const key = urlParams.get('key');
+        
+        if (key) {
+          setManagementKey(key);
+        }
+        
         fetchItemDetails(itemId);
       }
     };
     
-    // Add event listener for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    
     // Initial route handling
     handleHashChange();
     
-    // Clean up
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [searchQuery, selectedCategoryName]);
 
@@ -335,12 +344,23 @@ export const App = ({ html }) => {
   // Add event listener for search events
   React.useEffect(() => {
     const handleSearchEvent = (event) => {
+      // Set the search query
       setSearchQuery(event.detail.query);
+      
+      // If we're on a search page, don't trigger a search
+      if (currentRoute.startsWith('/search/')) {
+        return;
+      }
+      
+      // If we're on the home page or a category page, trigger a search
+      if (currentRoute === '/' || currentRoute.startsWith('/category/')) {
+        fetchItems(selectedCategory, event.detail.query);
+      }
     };
     
     window.addEventListener('search', handleSearchEvent);
     return () => window.removeEventListener('search', handleSearchEvent);
-  }, []);
+  }, [currentRoute, selectedCategory]);
 
   const handleHomeClick = () => {
     navigateTo('/');
@@ -465,6 +485,18 @@ export const App = ({ html }) => {
         darkMode=${darkMode}
         onBack=${handleHomeClick}
         html=${html}
+      />`;
+    }
+    
+    if (currentRoute.startsWith('/search/')) {
+      // Extract search query from the route
+      const searchQuery = decodeURIComponent(currentRoute.substring('/search/'.length));
+      
+      return html`<${SearchPage}
+        darkMode=${darkMode}
+        onBack=${handleHomeClick}
+        html=${html}
+        searchQuery=${searchQuery}
       />`;
     }
 

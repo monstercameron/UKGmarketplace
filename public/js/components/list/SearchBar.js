@@ -1,5 +1,4 @@
 import { DARK_TEAL, LIGHT_TEAL, WHITE } from '../../utils/constants.js';
-import { debounce } from '../../utils/debounce.js';
 
 export const SearchBar = ({ 
   darkMode, 
@@ -16,25 +15,30 @@ export const SearchBar = ({
   // Reference to the input element to maintain focus
   const inputRef = React.useRef(null);
   
-  // Create a debounced search function that only triggers after 500ms of inactivity
-  const debouncedSearch = React.useMemo(
-    () => debounce((value) => {
-      onSearch({ target: { value } });
-    }, 500),
-    [onSearch]
-  );
-  
-  // Handle input change
+  // Handle input change - only update the input value, don't trigger search
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInputValue(value); // Update the input value immediately for UI feedback
-    debouncedSearch(value); // Debounce the actual search
+  };
+  
+  // Handle search submission
+  const handleSearchSubmit = () => {
+    if (inputValue.trim()) {
+      // Navigate to search page
+      window.location.hash = `/search/${encodeURIComponent(inputValue.trim())}`;
+    }
+  };
+  
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
   };
   
   // Handle clear search
   const handleClearSearch = () => {
     setInputValue('');
-    onSearch({ target: { value: '' } });
     
     // Focus the input after clearing
     if (inputRef.current) {
@@ -72,10 +76,11 @@ export const SearchBar = ({
             type="text"
             value=${inputValue}
             onChange=${handleInputChange}
+            onKeyPress=${handleKeyPress}
             onFocus=${handleFocus}
             onBlur=${handleBlur}
             placeholder="Search items..."
-            className="w-full px-4 py-2 pl-10 rounded-lg transition-all duration-300"
+            className="w-full px-4 py-2 pl-10 pr-16 rounded-lg transition-all duration-300"
             style=${{
               backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)',
               border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
@@ -86,15 +91,33 @@ export const SearchBar = ({
             className="material-icons absolute left-3 top-1/2 transform -translate-y-1/2"
             style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
           >search</span>
-          ${inputValue && html`
+          
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center">
+            ${inputValue && html`
+              <button
+                onClick=${handleClearSearch}
+                className="p-1 mr-1 rounded-full hover:bg-black hover:bg-opacity-10"
+                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
+                aria-label="Clear search"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            `}
+            
             <button
-              onClick=${handleClearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
+              onClick=${handleSearchSubmit}
+              className="px-3 py-1 rounded-lg transition-all duration-200"
+              style=${{
+                backgroundColor: darkMode ? LIGHT_TEAL : DARK_TEAL,
+                color: WHITE,
+                fontSize: '0.875rem'
+              }}
+              disabled=${!inputValue.trim()}
+              aria-label="Search"
             >
-              <span className="material-icons">close</span>
+              Search
             </button>
-          `}
+          </div>
         </div>
       </div>
       

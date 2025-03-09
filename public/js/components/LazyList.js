@@ -130,6 +130,11 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
 
   // Fetch items when page, category, or search query changes
   React.useEffect(() => {
+    // Check if we're on a search page - if so, don't fetch items
+    if (window.location.hash.startsWith('#/search/')) {
+      return;
+    }
+    
     const fetchItems = async () => {
       try {
         setLoading(true);
@@ -142,8 +147,8 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
         });
         
         if (searchQuery) {
-          // Use the new search API endpoint
-          endpoint = '/api/v1/search';
+          // Use the correct search API endpoint
+          endpoint = '/api/v1/items/search';
           queryParams.set('q', searchQuery);
           
           // Add category filter if needed
@@ -169,21 +174,21 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
         if (page === 1) {
           setItems(data);
         } else {
-          setItems(prev => [...prev, ...data]);
+          setItems(prevItems => [...prevItems, ...data]);
         }
         
-        setHasMore(data.length > 0 && (page * itemsPerPage) < totalCount);
+        setHasMore(data.length === itemsPerPage);
+        setInitialLoading(false);
       } catch (err) {
         console.error('Error fetching items:', err);
         setError(err.message);
       } finally {
         setLoading(false);
-        setInitialLoading(false);
       }
     };
-
+    
     fetchItems();
-  }, [selectedCategory, page, searchQuery, itemsPerPage]);
+  }, [page, selectedCategory, searchQuery, itemsPerPage]);
 
   // Reset page when category or search query changes
   React.useEffect(() => {
@@ -196,6 +201,11 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
   const handleSearch = (event) => {
     const value = event.target.value;
     setSearchQuery(value);
+    
+    // Don't dispatch a search event if we're on a search page
+    if (window.location.hash.startsWith('#/search/')) {
+      return;
+    }
     
     // Dispatch event for global search state
     window.dispatchEvent(new CustomEvent('search', { detail: { query: value } }));
