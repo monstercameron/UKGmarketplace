@@ -139,6 +139,12 @@ export const ImageManager = ({
     }
     
     setNewFiles(filesToAdd);
+    
+    // Call the onFilesChange callback to update the parent component
+    if (isUploadMode && onFilesChange) {
+      console.log('Calling onFilesChange with files:', filesToAdd.length);
+      onFilesChange(filesToAdd);
+    }
   };
   
   // Handle drag events for the dropzone
@@ -497,19 +503,34 @@ export const ImageManager = ({
   const hasNewFiles = newFiles.length > 0;
   const totalImages = (isUploadMode ? uploadedFiles.length : existingImages.length) + newFiles.length;
   
-  // Log when props change
+  // Initialize component and handle uploadedFiles changes
   React.useEffect(() => {
+    if (!isUploadMode) return;
+    
     console.log(`ImageManager props updated in ${mode} mode:`, {
       uploadedFiles: uploadedFiles.length,
       existingImages: existingImages.length,
       newFiles: newFiles.length,
-      hasImages,
-      hasNewFiles,
-      totalImages,
-      isReorderMode,
-      showReorderButton: (isUploadMode && uploadedFiles.length > 1) || (isReorderMode && existingImages.length > 1)
+      hasImages: uploadedFiles.length > 0 || existingImages.length > 0,
+      hasNewFiles: newFiles.length > 0,
+      itemId: itemId || 'null',
+      managementKey: managementKey ? `${managementKey.substring(0, 5)}...` : 'none',
+      allowUploads,
+      showUploadButton
     });
-  }, [uploadedFiles, existingImages, newFiles, mode, hasImages, hasNewFiles, totalImages, isReorderMode, isUploadMode]);
+    
+    // If we have newFiles but uploadedFiles is empty, sync them
+    if (newFiles.length > 0 && uploadedFiles.length === 0) {
+      console.log('Syncing newFiles to parent component via onFilesChange:', newFiles.length);
+      onFilesChange(newFiles);
+    }
+    
+    // If we have uploadedFiles but newFiles is empty, sync them
+    if (uploadedFiles.length > 0 && newFiles.length === 0) {
+      console.log('Syncing uploadedFiles to newFiles:', uploadedFiles.length);
+      setNewFiles([...uploadedFiles]);
+    }
+  }, [isUploadMode, uploadedFiles, newFiles, mode, existingImages, itemId, managementKey, allowUploads, showUploadButton, onFilesChange]);
   
   // Log when reorderMode changes
   React.useEffect(() => {

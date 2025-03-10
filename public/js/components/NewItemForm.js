@@ -155,15 +155,30 @@ export const NewItemForm = ({ darkMode, html }) => {
         throw new Error(errorData.error || 'Failed to create item');
       }
 
-      const data = await response.json();
-      console.log('Item creation response:', data);
+      // Read the response JSON ONCE and store it
+      const responseData = await response.json();
+      console.log('Item creation response:', responseData);
       
-      // Extract item ID and management key from the response
-      // The response format has the item in the first index (0) and managementKey separately
-      const newItemId = data[0]?.id;
-      const newManagementKey = data.managementKey;
+      // The server returns an object with the item under key "0" and managementKey at the top level
+      const itemData = responseData["0"];
+      const newManagementKey = responseData.managementKey;
+      
+      console.log('Item data:', itemData);
+      console.log('Management key:', newManagementKey);
+      
+      if (!itemData) {
+        console.error('Invalid response format - missing item data:', responseData);
+        throw new Error('Invalid response format from server');
+      }
+      
+      // Extract item ID from the response
+      const newItemId = itemData.id;
+      
+      console.log('Extracted item ID:', newItemId);
+      console.log('Extracted management key:', newManagementKey);
       
       if (!newItemId || !newManagementKey) {
+        console.error('Missing item ID or management key in response:', responseData);
         throw new Error('Invalid response from server: missing item ID or management key');
       }
       
@@ -172,9 +187,38 @@ export const NewItemForm = ({ darkMode, html }) => {
       
       // If there are files to upload, upload them now
       if (uploadedFiles.length > 0) {
+        console.log('Preparing to upload images for new item:', {
+          itemId: newItemId,
+          managementKey: newManagementKey ? 'valid key' : 'missing key',
+          fileCount: uploadedFiles.length,
+          fileDetails: uploadedFiles.map(f => ({ name: f.name, type: f.type, size: f.size }))
+        });
+        
         setUploadingImages(true);
-        await uploadFiles(newItemId, newManagementKey, uploadedFiles);
-        setUploadingImages(false);
+        setToast({
+          show: true,
+          message: `Item created successfully. Now uploading ${uploadedFiles.length} image(s)...`,
+          type: 'info'
+        });
+        
+        try {
+          await uploadFiles(newItemId, newManagementKey, uploadedFiles);
+        } catch (uploadError) {
+          console.error('Error during image upload:', uploadError);
+          setToast({
+            show: true,
+            message: `Item created but there was an error uploading images: ${uploadError.message}`,
+            type: 'warning'
+          });
+        } finally {
+          setUploadingImages(false);
+        }
+      } else {
+        setToast({
+          show: true,
+          message: 'Item created successfully!',
+          type: 'success'
+        });
       }
       
       setSuccess(true);
@@ -191,24 +235,65 @@ export const NewItemForm = ({ darkMode, html }) => {
   
   // Upload files to the server after item creation
   const uploadFiles = async (newItemId, newManagementKey, files) => {
-    if (!newItemId || !newManagementKey || files.length === 0) return;
+    console.log('uploadFiles called with:', { 
+      newItemId, 
+      managementKey: newManagementKey ? 'valid key' : 'missing key', 
+      fileCount: files.length,
+      fileDetails: files.map(f => ({ name: f.name, type: f.type, size: f.size }))
+    });
+    
+    if (!newItemId || !newManagementKey) {
+      console.error('Cannot upload images: Missing item ID or management key');
+      setToast({
+        show: true,
+        message: 'Cannot upload images: Missing item ID or management key',
+        type: 'error'
+      });
+      return;
+    }
+    
+    if (files.length === 0) {
+      console.log('No files to upload');
+      return;
+    }
+    
+    // Validate that all files are valid File objects
+    const invalidFiles = files.filter(file => !(file instanceof File));
+    if (invalidFiles.length > 0) {
+      console.error('Invalid files detected:', invalidFiles);
+      setToast({
+        show: true,
+        message: 'Cannot upload images: Invalid file objects',
+        type: 'error'
+      });
+      return;
+    }
     
     try {
       const formData = new FormData();
-      files.forEach(file => {
+      
+      // Add each file to the FormData
+      files.forEach((file, index) => {
+        console.log(`Adding file ${index + 1}/${files.length} to FormData:`, file.name, file.type, file.size);
         formData.append('images', file);
       });
+      
+      // Add the management key
       formData.append('managementKey', newManagementKey);
+      console.log('Added management key to FormData');
       
       setToast({
         show: true,
-        message: 'Uploading images...',
+        message: `Uploading ${files.length} image(s)...`,
         type: 'info'
       });
       
-      console.log(`Uploading images for item ${newItemId} with management key ${newManagementKey}`);
+      console.log(`Sending request to upload ${files.length} images for item ${newItemId}`);
       
-      const response = await fetch(`/api/v1/images/${newItemId}`, {
+      const uploadUrl = `/api/v1/images/${newItemId}`;
+      console.log('Upload URL:', uploadUrl);
+      
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData
       });
@@ -217,7 +302,7 @@ export const NewItemForm = ({ darkMode, html }) => {
       
       if (response.ok) {
         const uploadedImages = await response.json();
-        console.log('Uploaded images:', uploadedImages);
+        console.log('Uploaded images response:', uploadedImages);
         
         setToast({
           show: true,
@@ -228,7 +313,7 @@ export const NewItemForm = ({ darkMode, html }) => {
         let errorMessage = 'Failed to upload images';
         try {
           const errorData = await response.json();
-          console.error('Image upload error:', errorData);
+          console.error('Image upload error response:', errorData);
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
           console.error('Error parsing image upload error:', e);
@@ -252,6 +337,7 @@ export const NewItemForm = ({ darkMode, html }) => {
 
   // Reset form fields
   const resetForm = () => {
+    // Reset form fields but keep the management key and item ID for the success screen
     setTitle('');
     setDescription('');
     setPrice('');
@@ -276,7 +362,17 @@ export const NewItemForm = ({ darkMode, html }) => {
     setEmail('');
     setPhone('');
     setTeamsLink('');
-    setUploadedFiles([]);
+    setError(null);
+    
+    // Reset uploaded files AFTER the upload is complete
+    if (!uploadingImages) {
+      console.log('Resetting uploadedFiles');
+      setUploadedFiles([]);
+    } else {
+      console.log('Not resetting uploadedFiles because upload is in progress');
+    }
+    
+    console.log('Form reset completed. Management key and item ID preserved for success screen.');
   };
 
   // Handle reset for creating a new item
