@@ -82,5 +82,9 @@ Contact **Cam Cameron** at [cam.cameron@ukg.com](mailto:cam.cameron@ukg.com)
 ---
 
 <p align="center">
+  <i>This project was fully vibe coded with Cursor AI</i>
+</p>
+
+<p align="center">
   <strong>UKG Marketplace</strong> - One place for all your workplace marketplace needs!
 </p>
