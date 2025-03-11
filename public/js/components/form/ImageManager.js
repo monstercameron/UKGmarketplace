@@ -6,6 +6,8 @@ export const ImageManager = ({
   // For new items (file upload)
   uploadedFiles = [], 
   onFilesChange = () => {},
+  // New prop for new files in reorder mode
+  onNewFilesChange = () => {},
   // For existing items (image reordering)
   itemId = null,
   managementKey = null,
@@ -140,10 +142,14 @@ export const ImageManager = ({
     
     setNewFiles(filesToAdd);
     
-    // Call the onFilesChange callback to update the parent component
+    // Call the onFilesChange callback to update the parent component in upload mode
     if (isUploadMode && onFilesChange) {
       console.log('Calling onFilesChange with files:', filesToAdd.length);
       onFilesChange(filesToAdd);
+    } else if (!isUploadMode && onNewFilesChange) {
+      // In reorder mode, use onNewFilesChange to pass new files to parent
+      console.log('Calling onNewFilesChange with files:', filesToAdd.length);
+      onNewFilesChange(filesToAdd);
     }
   };
   

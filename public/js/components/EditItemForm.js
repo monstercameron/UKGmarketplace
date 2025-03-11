@@ -1,11 +1,19 @@
 import { DARK_TEAL, LIGHT_TEAL, WHITE, DARK_BG, PAYMENT_METHODS, SHIPPING_OPTIONS } from '../utils/constants.js';
 import { Toast } from './Toast.js';
-import { Breadcrumbs } from './Breadcrumbs.js';
 import { ImageManager } from './form/ImageManager.js';
 import { ConditionSelectionSection } from './form/ConditionSelectionSection.js';
 import { CategorySelectionSection } from './form/CategorySelectionSection.js';
 import { PaymentMethodsSection } from './form/PaymentMethodsSection.js';
 import { ShippingOptionsSection } from './form/ShippingOptionsSection.js';
+import { FormHeader } from './form/FormHeader.js';
+import { FormContainer } from './form/FormContainer.js';
+import { ManagementKeyInput } from './form/ManagementKeyInput.js';
+import { TitleDescriptionSection } from './form/TitleDescriptionSection.js';
+import { PriceNegotiableSection } from './form/PriceNegotiableSection.js';
+import { LocationSection } from './form/LocationSection.js';
+import { ContactInfoSection } from './form/ContactInfoSection.js';
+import { SubmitButton } from './form/SubmitButton.js';
+import { LoadingSpinner } from './form/LoadingSpinner.js';
 
 export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMode, onBack, html }) => {
   // Form state initialized with item data
@@ -42,6 +50,7 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
   const [managementKey, setManagementKey] = React.useState(initialManagementKey || '');
   const [showManagementKeyInput, setShowManagementKeyInput] = React.useState(!initialManagementKey);
   const [itemImages, setItemImages] = React.useState([]);
+  const [newFiles, setNewFiles] = React.useState([]);
   const [loadingImages, setLoadingImages] = React.useState(true);
 
   // Default categories to use as fallback
@@ -94,65 +103,6 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
 
   // Fetch categories on component mount
   React.useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        // Try to get categories from cache first
-        const cachedCategories = localStorage.getItem('cached_categories');
-        const cacheExpiry = localStorage.getItem('categories_cache_expiry');
-        
-        if (cachedCategories && cacheExpiry) {
-          // Check if cache is still valid
-          if (Date.now() < Number(cacheExpiry)) {
-            const parsedCategories = JSON.parse(cachedCategories);
-            setCategories(parsedCategories);
-            return;
-          }
-        }
-
-        // Set up fetch with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        try {
-          const response = await fetch('/api/v1/categories', {
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) throw new Error('Failed to fetch categories');
-          const data = await response.json();
-          
-          // Cache the categories
-          localStorage.setItem('cached_categories', JSON.stringify(data));
-          localStorage.setItem('categories_cache_expiry', String(Date.now() + (24 * 60 * 60 * 1000))); // 24 hours
-          
-          setCategories(data);
-        } catch (apiError) {
-          console.error('Error fetching categories from API:', apiError);
-          
-          // Use default categories as fallback
-          setCategories(DEFAULT_CATEGORIES);
-          
-          // Cache the default categories with a shorter expiry (4 hours)
-          localStorage.setItem('cached_categories', JSON.stringify(DEFAULT_CATEGORIES));
-          localStorage.setItem('categories_cache_expiry', String(Date.now() + (4 * 60 * 60 * 1000)));
-          
-          setToast({
-            show: true,
-            message: 'Could not connect to the server. Using default categories.',
-            type: 'warning'
-          });
-        }
-      } catch (err) {
-        console.error('Unexpected error in fetchCategories:', err);
-        setToast({
-          show: true,
-          message: 'Failed to load categories. Please try again later.',
-          type: 'error'
-        });
-      }
-    };
-
     fetchCategories();
   }, []);
 
@@ -163,6 +113,73 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
     }
   }, [item]);
   
+  // Add debugging for props
+  React.useEffect(() => {
+    console.log('EditItemForm props:', { 
+      itemId: item?.id, 
+      managementKey: initialManagementKey ? `${initialManagementKey.substring(0, 5)}...` : 'none'
+    });
+  }, [item, initialManagementKey]);
+
+  const fetchCategories = async () => {
+    try {
+      // Try to get categories from cache first
+      const cachedCategories = localStorage.getItem('cached_categories');
+      const cacheExpiry = localStorage.getItem('categories_cache_expiry');
+      
+      if (cachedCategories && cacheExpiry) {
+        // Check if cache is still valid
+        if (Date.now() < Number(cacheExpiry)) {
+          const parsedCategories = JSON.parse(cachedCategories);
+          setCategories(parsedCategories);
+          return;
+        }
+      }
+
+      // Set up fetch with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const response = await fetch('/api/v1/categories', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        
+        // Cache the categories
+        localStorage.setItem('cached_categories', JSON.stringify(data));
+        localStorage.setItem('categories_cache_expiry', String(Date.now() + (24 * 60 * 60 * 1000))); // 24 hours
+        
+        setCategories(data);
+      } catch (apiError) {
+        console.error('Error fetching categories from API:', apiError);
+        
+        // Use default categories as fallback
+        setCategories(DEFAULT_CATEGORIES);
+        
+        // Cache the default categories with a shorter expiry (4 hours)
+        localStorage.setItem('cached_categories', JSON.stringify(DEFAULT_CATEGORIES));
+        localStorage.setItem('categories_cache_expiry', String(Date.now() + (4 * 60 * 60 * 1000)));
+        
+        setToast({
+          show: true,
+          message: 'Could not connect to the server. Using default categories.',
+          type: 'warning'
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error in fetchCategories:', err);
+      setToast({
+        show: true,
+        message: 'Failed to load categories. Please try again later.',
+        type: 'error'
+      });
+    }
+  };
+
   // Function to fetch images from the API
   const fetchItemImages = async (itemId) => {
     if (!itemId) return;
@@ -205,18 +222,7 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
   const handleImagesChange = (newImages) => {
     console.log('Images changed in EditItemForm:', newImages);
     setItemImages(newImages);
-    
-    // No need to update the server here as the ImageManager component
-    // already handles updating the image order on the server via its updateImageOrder function
   };
-
-  // Add debugging for props
-  React.useEffect(() => {
-    console.log('EditItemForm props:', { 
-      itemId: item?.id, 
-      managementKey: initialManagementKey ? `${initialManagementKey.substring(0, 5)}...` : 'none'
-    });
-  }, [item, initialManagementKey]);
 
   const handlePaymentMethodToggle = (method) => {
     setSelectedPaymentMethods(prev => ({
@@ -230,6 +236,40 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
       ...prev,
       [option]: !prev[option]
     }));
+  };
+
+  const uploadFiles = async (itemId, managementKey, files) => {
+    if (!itemId || !managementKey) {
+      setToast({
+        show: true,
+        message: 'Cannot upload images: Missing item ID or management key',
+        type: 'error'
+      });
+      return;
+    }
+    if (files.length === 0) return;
+    try {
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('images', file);
+      });
+      formData.append('managementKey', managementKey);
+      setToast({ show: true, message: `Uploading ${files.length} image(s)...`, type: 'info' });
+      const uploadUrl = `/api/v1/images/${item.id}`;
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+      });
+      if (response.ok) {
+        const uploadedImages = await response.json();
+        setToast({ show: true, message: `Successfully uploaded ${Array.isArray(uploadedImages) ? uploadedImages.length : 0} image(s)`, type: 'success' });
+      } else {
+        const errorData = await response.json();
+        setToast({ show: true, message: errorData.error || 'Failed to upload images', type: 'error' });
+      }
+    } catch (err) {
+      setToast({ show: true, message: `Error uploading images: ${err.message}`, type: 'error' });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -361,6 +401,25 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
         }
       }
       
+      // Upload new images if any new files have been added in reorder mode
+      if (newFiles.length > 0) {
+        try {
+          setToast({
+            show: true,
+            message: `Now uploading ${newFiles.length} new image(s)...`,
+            type: 'info'
+          });
+          await uploadFiles(item.id, managementKey, newFiles);
+        } catch (uploadError) {
+          console.error('Error uploading new images:', uploadError);
+          setToast({
+            show: true,
+            message: `Error uploading new images: ${uploadError.message}`,
+            type: 'error'
+          });
+        }
+      }
+      
       setSuccess(true);
       setToast({
         show: true,
@@ -415,46 +474,18 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
   if (!item) {
     return html`
       <div className="max-w-3xl mx-auto pb-16">
-        <div 
-          className="sticky top-0 z-10 -mx-4 px-4 py-4 mb-6 transition-all duration-300"
-          style=${{
-            backgroundColor: darkMode ? `${DARK_BG}CC` : `${WHITE}CC`,
-            backdropFilter: 'blur(8px)',
-            borderBottom: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <${Breadcrumbs} 
-              darkMode=${darkMode} 
-              html=${html}
-              items=${[
-                { text: 'Home', link: true, onClick: onBack },
-                { text: 'Edit Item' }
-              ]} 
-            />
-            <button
-              onClick=${onBack}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:-translate-x-1"
-              style=${{
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.1)',
-                color: darkMode ? WHITE : DARK_TEAL
-              }}
-            >
-              <span className="material-icons">arrow_back</span>
-              <span>Cancel</span>
-            </button>
-          </div>
-        </div>
+        <${FormHeader} 
+          darkMode=${darkMode} 
+          onBack=${onBack} 
+          html=${html} 
+        />
         
         <div className="flex justify-center p-8">
-          <div 
-            className="animate-spin rounded-full h-12 w-12 border-4" 
-            style=${{ 
-              borderColor: `${LIGHT_TEAL}`,
-              borderTopColor: LIGHT_TEAL,
-              animation: 'spin 1s cubic-bezier(0.55, 0.25, 0.25, 0.7) infinite'
-            }}
-          ></div>
+          <${LoadingSpinner} 
+            darkMode=${darkMode} 
+            size="large" 
+            html=${html} 
+          />
         </div>
       </div>
     `;
@@ -471,164 +502,48 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
           html=${html}
         />
       `}
-      <div 
-        className="sticky top-0 z-10 -mx-4 px-4 py-4 mb-6 transition-all duration-300"
-        style=${{
-          backgroundColor: darkMode ? `${DARK_BG}CC` : `${WHITE}CC`,
-          backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <${Breadcrumbs} 
-            darkMode=${darkMode} 
-            html=${html}
-            items=${[
-              { text: 'Home', link: true, onClick: onBack },
-              { text: 'Edit Item' }
-            ]} 
-          />
-          <button
-            onClick=${onBack}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:-translate-x-1"
-            style=${{
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.1)',
-              color: darkMode ? WHITE : DARK_TEAL
-            }}
-          >
-            <span className="material-icons">arrow_back</span>
-            <span>Cancel</span>
-          </button>
-        </div>
-      </div>
+      
+      <${FormHeader} 
+        darkMode=${darkMode} 
+        onBack=${onBack} 
+        html=${html} 
+      />
 
-      <div 
-        className="rounded-xl shadow-lg p-6 backdrop-blur-sm mb-8"
-        style=${{
-          backgroundColor: darkMode ? 'rgba(17, 24, 39, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-          border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-        }}
+      <${FormContainer} 
+        darkMode=${darkMode} 
+        title="Edit Item" 
+        html=${html}
       >
-        <h1 
-          className="text-2xl font-bold mb-6 flex items-center gap-2"
-          style=${{ color: darkMode ? WHITE : DARK_TEAL }}
-        >
-          <span className="material-icons">edit</span>
-          Edit Item
-        </h1>
-
         ${showManagementKeyInput && html`
-          <div 
-            className="mb-6 p-4 rounded-lg"
-            style=${{ 
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 48, 135, 0.05)',
-              border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-            }}
-          >
-            <h3
-              className="text-lg font-semibold mb-2"
-              style=${{ color: darkMode ? WHITE : DARK_TEAL }}
-            >Enter Management Key</h3>
-            <p
-              className="mb-4"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-            >
-              Please enter the management key you received when you created this listing.
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value=${managementKey}
-                onChange=${(e) => setManagementKey(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                style=${{
-                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? WHITE : DARK_TEAL,
-                  border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                }}
-                placeholder="Enter management key"
-              />
-              <button
-                onClick=${() => setShowManagementKeyInput(false)}
-                className="px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: darkMode ? LIGHT_TEAL : DARK_TEAL,
-                  color: WHITE
-                }}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
+          <${ManagementKeyInput}
+            darkMode=${darkMode}
+            managementKey=${managementKey}
+            setManagementKey=${setManagementKey}
+            onConfirm=${() => setShowManagementKeyInput(false)}
+            html=${html}
+          />
         `}
 
         <form onSubmit=${handleSubmit}>
-          <!-- Title -->
-          <div className="mb-6">
-            <label 
-              className="block mb-2 text-sm font-medium"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-            >
-              Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value=${title}
-              onChange=${(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-              style=${{
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                color: darkMode ? WHITE : DARK_TEAL,
-                border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-              }}
-              placeholder="Enter item title"
-              required
-            />
-          </div>
-
-          <!-- Description -->
-          <div className="mb-6">
-            <label 
-              className="block mb-2 text-sm font-medium"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-            >
-              Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value=${description}
-              onChange=${e => setDescription(e.target.value)}
-              rows="4"
-              className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-              style=${{ 
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                color: darkMode ? WHITE : DARK_TEAL,
-                minHeight: '150px'
-              }}
-              placeholder="Describe your item (Markdown supported)"
-              required
-            ></textarea>
-            <p 
-              className="mt-1 text-xs"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
-            >
-              Markdown formatting supported. You can use **bold**, *italic*, [links](url), and more.
-            </p>
-          </div>
+          <${TitleDescriptionSection}
+            darkMode=${darkMode}
+            title=${title}
+            setTitle=${setTitle}
+            description=${description}
+            setDescription=${setDescription}
+            html=${html}
+          />
           
           <!-- Images -->
           ${loadingImages ? html`
-            <div className="mb-6 flex justify-center">
-              <div 
-                className="animate-spin rounded-full h-8 w-8 border-4" 
-                style=${{ 
-                  borderColor: darkMode ? LIGHT_TEAL : DARK_TEAL,
-                  borderTopColor: 'transparent'
-                }}
-              ></div>
+            <div className="mb-6">
+              <${LoadingSpinner} 
+                darkMode=${darkMode} 
+                html=${html} 
+              />
             </div>
           ` : html`
-            <div className="form-section form-section-2">
+            <div className="form-section form-section-2 mb-6">
               <${ImageManager}
                 darkMode=${darkMode}
                 html=${html}
@@ -636,6 +551,7 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
                 managementKey=${managementKey}
                 existingImages=${itemImages}
                 onImagesChange=${handleImagesChange}
+                onNewFilesChange=${setNewFiles}
                 maxImages=${8}
                 mode="reorder"
                 allowUploads=${true}
@@ -644,57 +560,14 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
             </div>
           `}
 
-          <!-- Price and Negotiable -->
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label 
-                className="block mb-2 text-sm font-medium"
-                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-              >
-                Price <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <span 
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-lg font-medium"
-                  style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}
-                >$</span>
-                <input
-                  type="number"
-                  value=${price}
-                  onChange=${(e) => setPrice(e.target.value)}
-                  className="w-full pl-8 pr-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                  style=${{
-                    backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    color: darkMode ? WHITE : DARK_TEAL,
-                    border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                  }}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="negotiable"
-                checked=${negotiable}
-                onChange=${() => setNegotiable(!negotiable)}
-                className="w-5 h-5 rounded"
-                style=${{
-                  accentColor: darkMode ? LIGHT_TEAL : DARK_TEAL,
-                }}
-              />
-              <label
-                htmlFor="negotiable"
-                className="ml-2 text-sm font-medium"
-                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-              >
-                Price is negotiable
-              </label>
-            </div>
-          </div>
+          <${PriceNegotiableSection}
+            darkMode=${darkMode}
+            price=${price}
+            setPrice=${setPrice}
+            negotiable=${negotiable}
+            setNegotiable=${setNegotiable}
+            html=${html}
+          />
 
           <!-- Condition and Category -->
           <div className="grid grid-cols-1 gap-6 mb-6">
@@ -714,103 +587,24 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
             />
           </div>
 
-          <!-- Location -->
-          <div className="mb-6">
-            <label 
-              className="block mb-2 text-sm font-medium"
-              style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-            >
-              Location <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value=${location}
-              onChange=${(e) => setLocation(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-              style=${{
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                color: darkMode ? WHITE : DARK_TEAL,
-                border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-              }}
-              placeholder="Enter location (e.g., Building 3, Floor 2)"
-              required
-            />
-          </div>
+          <${LocationSection}
+            darkMode=${darkMode}
+            location=${location}
+            setLocation=${setLocation}
+            html=${html}
+          />
 
-          <!-- Contact Information -->
-          <div className="mb-6">
-            <h3 
-              className="text-lg font-medium mb-4"
-              style=${{ color: darkMode ? WHITE : DARK_TEAL }}
-            >
-              Contact Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label 
-                  className="block mb-2 text-sm font-medium"
-                  style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-                >
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value=${email}
-                  onChange=${(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                  style=${{
-                    backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    color: darkMode ? WHITE : DARK_TEAL,
-                    border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                  }}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <div>
-                <label 
-                  className="block mb-2 text-sm font-medium"
-                  style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-                >
-                  Phone (optional)
-                </label>
-                <input
-                  type="tel"
-                  value=${phone}
-                  onChange=${(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                  style=${{
-                    backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                    color: darkMode ? WHITE : DARK_TEAL,
-                    border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                  }}
-                  placeholder="Enter your phone number"
-                />
-              </div>
-            </div>
-            <div className="mt-4">
-              <label 
-                className="block mb-2 text-sm font-medium"
-                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-              >
-                Teams Link (optional)
-              </label>
-              <input
-                type="url"
-                value=${teamsLink}
-                onChange=${(e) => setTeamsLink(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                style=${{
-                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? WHITE : DARK_TEAL,
-                  border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                }}
-                placeholder="Enter Teams chat link"
-              />
-            </div>
-          </div>
+          <${ContactInfoSection}
+            darkMode=${darkMode}
+            email=${email}
+            setEmail=${setEmail}
+            phone=${phone}
+            setPhone=${setPhone}
+            teamsLink=${teamsLink}
+            setTeamsLink=${setTeamsLink}
+            html=${html}
+          />
 
-          <!-- Payment Methods -->
           <${PaymentMethodsSection}
             darkMode=${darkMode}
             html=${html}
@@ -818,7 +612,6 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
             onMethodToggle=${handlePaymentMethodToggle}
           />
 
-          <!-- Shipping Options -->
           <${ShippingOptionsSection}
             darkMode=${darkMode}
             html=${html}
@@ -826,36 +619,14 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
             onOptionToggle=${handleShippingOptionToggle}
           />
 
-          <!-- Submit Button -->
-          <div className="flex justify-end mt-8">
-            <button
-              type="submit"
-              disabled=${loading || showManagementKeyInput}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105"
-              style=${{
-                backgroundColor: darkMode ? LIGHT_TEAL : DARK_TEAL,
-                color: WHITE,
-                opacity: (loading || showManagementKeyInput) ? 0.7 : 1,
-                cursor: (loading || showManagementKeyInput) ? 'not-allowed' : 'pointer'
-              }}
-            >
-              ${loading ? html`
-                <div 
-                  className="animate-spin rounded-full h-5 w-5 border-2" 
-                  style=${{ 
-                    borderColor: `${WHITE}`,
-                    borderTopColor: 'transparent'
-                  }}
-                ></div>
-                <span>Updating...</span>
-              ` : html`
-                <span className="material-icons">save</span>
-                <span>Update Item</span>
-              `}
-            </button>
-          </div>
+          <${SubmitButton}
+            darkMode=${darkMode}
+            loading=${loading}
+            disabled=${showManagementKeyInput}
+            html=${html}
+          />
         </form>
-      </div>
+      </${FormContainer}>
     </div>
   `;
 }; 
