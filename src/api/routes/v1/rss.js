@@ -51,16 +51,15 @@ router.get('/', async (req, res) => {
             let items = [];
             
             try {
-                // First try a simpler query to get the item with ID 91
-                const item91 = await getAsync('SELECT * FROM items WHERE id = 91');
-                console.log('Item 91 lookup result:', item91 ? 'Found' : 'Not found');
+                // Query for all items instead of looking for a specific item ID
+                items = await allAsync('SELECT * FROM items ORDER BY created_at DESC LIMIT 20');
+                console.log(`Found ${items.length} items with simple query`);
                 
-                if (item91) {
+                // Process each item
+                for (const item of items) {
                     // Get category name
-                    const category = await getAsync('SELECT name FROM categories WHERE id = ?', [item91.category_id]);
-                    
-                    // Add category name to the item
-                    item91.category_name = category ? category.name : 'Unknown Category';
+                    const category = await getAsync('SELECT name FROM categories WHERE id = ?', [item.category_id]);
+                    item.category_name = category ? category.name : 'Unknown Category';
                     
                     // Check for payment methods
                     try {
@@ -68,63 +67,41 @@ router.get('/', async (req, res) => {
                             'SELECT pm.slug FROM item_payment_methods ipm ' +
                             'JOIN payment_methods pm ON ipm.payment_method_id = pm.id ' +
                             'WHERE ipm.item_id = ?', 
-                            [item91.id]
+                            [item.id]
                         );
                         
-                        item91.paymentMethods = paymentMethods.map(pm => pm.slug);
+                        item.paymentMethods = paymentMethods.map(pm => pm.slug);
                     } catch (pmError) {
                         console.error('Error getting payment methods:', pmError);
-                        item91.paymentMethods = [];
+                        item.paymentMethods = [];
                     }
                     
                     // Check for images
                     try {
                         const images = await allAsync(
                             'SELECT url, is_primary FROM item_images WHERE item_id = ?',
-                            [item91.id]
+                            [item.id]
                         );
                         
                         // Find primary image
                         const primaryImage = images.find(img => img.is_primary === 1);
                         if (primaryImage) {
-                            item91.primary_image = primaryImage.url;
+                            item.primary_image = primaryImage.url;
                         }
                         
                         // Store all image URLs
-                        item91.image_urls = images.map(img => img.url).join(',');
+                        item.image_urls = images.map(img => img.url).join(',');
                     } catch (imgError) {
                         console.error('Error getting images:', imgError);
                     }
                     
                     // Parse shipping JSON if it exists
-                    if (item91.shipping && typeof item91.shipping === 'string') {
+                    if (item.shipping && typeof item.shipping === 'string') {
                         try {
-                            item91.shipping = JSON.parse(item91.shipping);
+                            item.shipping = JSON.parse(item.shipping);
                         } catch (jsonError) {
                             console.error('Error parsing shipping JSON:', jsonError);
-                            item91.shipping = [];
-                        }
-                    }
-                    
-                    items = [item91];
-                } else {
-                    // Try a more general query for any items if item 91 not found
-                    items = await allAsync('SELECT * FROM items ORDER BY created_at DESC LIMIT 20');
-                    console.log(`Found ${items.length} items with simple query`);
-                    
-                    // Process each item similarly to item 91
-                    for (const item of items) {
-                        // Get category name
-                        const category = await getAsync('SELECT name FROM categories WHERE id = ?', [item.category_id]);
-                        item.category_name = category ? category.name : 'Unknown Category';
-                        
-                        // Parse shipping JSON if it exists
-                        if (item.shipping && typeof item.shipping === 'string') {
-                            try {
-                                item.shipping = JSON.parse(item.shipping);
-                            } catch (e) {
-                                item.shipping = [];
-                            }
+                            item.shipping = [];
                         }
                     }
                 }
@@ -194,23 +171,29 @@ router.get('/debug', async (req, res) => {
             serverPort: process.env.PORT
         };
         
-        // Try to fetch items
-        let itemsResult = null;
+        // Try to fetch items directly from the database
         let items = [];
         
         try {
-            itemsResult = await itemService.findAllItems({
-                page: 1,
-                limit: 5, // Just get a few for debugging
-                sort: 'created_at',
-                order: 'DESC'
-            });
+            items = await allAsync('SELECT * FROM items ORDER BY created_at DESC LIMIT 5');
+            console.log(`Direct database query found ${items.length} items`);
             
-            if (itemsResult.success && itemsResult.data) {
-                items = itemsResult.data;
+            // Process items with associated data if any found
+            if (items.length > 0) {
+                for (const item of items) {
+                    // Get category name
+                    const category = await getAsync('SELECT name FROM categories WHERE id = ?', [item.category_id]);
+                    item.category_name = category ? category.name : 'Unknown Category';
+                    
+                    // Check for primary image
+                    const primaryImage = await getAsync('SELECT url FROM item_images WHERE item_id = ? AND is_primary = 1 LIMIT 1', [item.id]);
+                    if (primaryImage) {
+                        item.primary_image = primaryImage.url;
+                    }
+                }
             }
-        } catch (itemError) {
-            console.error('Error fetching items for RSS debug:', itemError);
+        } catch (dbError) {
+            console.error('Error in direct database query for debug endpoint:', dbError);
         }
         
         // Construct full feed URL
@@ -222,26 +205,20 @@ router.get('/debug', async (req, res) => {
             status: 'ok',
             timestamp: new Date().toISOString(),
             networkInfo,
-            itemServiceResult: {
-                success: itemsResult ? itemsResult.success : false,
-                error: itemsResult ? itemsResult.error : 'Not available',
-                itemCount: items.length,
-                sampleItem: items.length > 0 ? {
-                    id: items[0].id,
-                    title: items[0].title,
-                    created_at: items[0].created_at,
-                    hasImages: !!items[0].primary_image || !!items[0].image_urls,
-                    sampleImageUrl: items[0].primary_image 
-                        ? `${siteUrl}${items[0].primary_image}` 
-                        : (items[0].image_urls ? `${siteUrl}${items[0].image_urls.split(',')[0]}` : null)
-                } : null
-            },
+            itemCount: items.length,
+            sampleItem: items.length > 0 ? {
+                id: items[0].id,
+                title: items[0].title,
+                created_at: items[0].created_at,
+                category: items[0].category_name,
+                hasImages: !!items[0].primary_image
+            } : null,
             rssLinks: {
                 feedUrl,
                 feedWithActualIp: `http://${req.ip.replace('::ffff:', '')}:${process.env.PORT}/api/v1/rss`,
                 debugEndpoint: `${siteUrl}/api/v1/rss/debug`
             },
-            helpMessage: "If the feed isn't working, try updating your HOST_URL in .env to match your actual IP address."
+            helpMessage: "If the feed isn't working, make sure you have at least one item in your database and check your .env configuration."
         });
     } catch (error) {
         console.error('RSS debug endpoint error:', error);
