@@ -34,7 +34,7 @@ Want to run UKG Marketplace locally? It's easy!
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ukg-marketplace.git
+git clone https://github.com/monstercameron/UKGmarketplace.git
 
 # Install dependencies
 npm install
@@ -78,6 +78,10 @@ This project exists because we all missed having a centralized marketplace. If y
 - 🤔 Just have questions
 
 Contact **Cam Cameron** at [cam.cameron@ukg.com](mailto:cam.cameron@ukg.com)
+
+## 📱 Repository
+
+Check out the project on GitHub: [https://github.com/monstercameron/UKGmarketplace](https://github.com/monstercameron/UKGmarketplace)
 
 ---
 
