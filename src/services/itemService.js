@@ -92,26 +92,32 @@ const ensureItemProperties = (item) => {
             }
         }
         
-        // If we still don't have payment methods, check if payment_methods is a JSON string
+        // If we still don't have payment methods, check if payment_methods is a string
         if ((!item.paymentMethods || item.paymentMethods.length === 0) && 
             item.payment_methods && typeof item.payment_methods === 'string') {
             try {
+                // Check if it's a JSON string
                 if (item.payment_methods.startsWith('[')) {
                     const parsed = JSON.parse(item.payment_methods);
                     if (Array.isArray(parsed)) {
                         item.paymentMethods = parsed;
-                        console.log(`Set paymentMethods from payment_methods string for item ${item.id}`);
+                        console.log(`Set paymentMethods from payment_methods JSON string for item ${item.id}`);
                     }
+                } else {
+                    // It might be a comma-separated list
+                    const parsed = item.payment_methods.split(',');
+                    item.paymentMethods = parsed;
+                    console.log(`Set paymentMethods from payment_methods CSV string for item ${item.id}`);
                 }
             } catch (e) {
                 console.error(`Error parsing payment_methods string for item ${item.id}:`, e);
             }
         }
         
-        // Final fallback: Set to all payment methods as a last resort
+        // Final fallback: Set to just "cash" as a last resort - don't force all methods
         if (!item.paymentMethods || !Array.isArray(item.paymentMethods) || item.paymentMethods.length === 0) {
-            item.paymentMethods = ["cash", "apple_cash", "cash_app", "zelle", "venmo", "paypal", "other"];
-            console.log(`Set default paymentMethods for item ${item.id}`);
+            item.paymentMethods = ["cash"]; // Only set the default to "cash" instead of all methods
+            console.log(`Set minimal default paymentMethods for item ${item.id}`);
         }
     }
     
@@ -393,7 +399,19 @@ export const findItemById = (id) => {
         console.log('DIRECT FIX: Special handling for item 91');
         
         return handle(allAsync(`
-            SELECT * FROM items WHERE id = ?
+            SELECT 
+                i.*,
+                c.name as category_name,
+                GROUP_CONCAT(DISTINCT pm.slug) as payment_methods,
+                (SELECT url FROM item_images WHERE item_id = i.id AND is_primary = 1 LIMIT 1) as primary_image,
+                GROUP_CONCAT(DISTINCT ii.url) as image_urls
+            FROM items i
+            LEFT JOIN categories c ON i.category_id = c.id
+            LEFT JOIN item_payment_methods ipm ON i.id = ipm.item_id
+            LEFT JOIN payment_methods pm ON ipm.payment_method_id = pm.id
+            LEFT JOIN item_images ii ON i.id = ii.item_id
+            WHERE i.id = ?
+            GROUP BY i.id
         `, [id]).then(results => {
             if (!results || results.length === 0) {
                 return results;
@@ -402,12 +420,14 @@ export const findItemById = (id) => {
             // Get the base item
             const item = results[0];
             
-            // Hardcoded fixes for item 91
+            // Use actual payment methods from database rather than hardcoded ones
+            const paymentMethods = item.payment_methods ? item.payment_methods.split(',') : [];
+            
             return [{
                 ...item,
                 category_id: 2,
                 category_name: 'Computers',
-                paymentMethods: ["cash", "apple_cash", "cash_app", "zelle", "venmo", "paypal", "other"],
+                paymentMethods: paymentMethods, // Use actual payment methods
                 shipping: ["local", "office"],
                 negotiable: true
             }];
