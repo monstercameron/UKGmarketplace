@@ -240,6 +240,22 @@ export const ItemDetail = ({ item, loading, onBack, darkMode, html }) => {
     setToast({ ...toast, show: false });
   };
 
+  // Handler for Teams Desktop link
+  const handleTeamsDesktopClick = () => {
+    // Use the MS Teams desktop protocol to open Teams
+    // Use the teams_link field as the user ID
+    const teamsId = itemData.teams_link || 'user@example.com';
+    window.location.href = `msteams://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(teamsId)}`;
+  };
+  
+  // Handler for Teams Web link
+  const handleTeamsWebClick = () => {
+    // Get user ID from teams_link field
+    const userId = itemData.teams_link || 'USER_ID';
+    // Open Teams web in a new tab
+    window.open(`https://teams.microsoft.com/_#/profile?userId=${encodeURIComponent(userId)}`, '_blank');
+  };
+
   // Add keyframe animations
   React.useEffect(() => {
     const style = document.createElement('style');
@@ -745,19 +761,54 @@ export const ItemDetail = ({ item, loading, onBack, darkMode, html }) => {
               `}
               ${itemData.teams_link && html`
                 <div className="mt-3">
-                  <a
-                    href=${itemData.teams_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 w-fit"
-                    style=${{
-                      backgroundColor: '#464EB8',
-                      color: WHITE
-                    }}
-                  >
-                    <span className="material-icons">chat</span>
-                    Teams Chat
-                  </a>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="material-icons text-base" style=${{ color: darkMode ? LIGHT_TEAL : DARK_TEAL }}>person</span>
+                    <span style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}>
+                      Teams ID: ${itemData.teams_link}
+                    </span>
+                    <button
+                      onClick=${() => {
+                        navigator.clipboard.writeText(itemData.teams_link);
+                        setToast({
+                          show: true,
+                          message: 'Teams ID copied to clipboard',
+                          type: 'success'
+                        });
+                      }}
+                      className="p-1 rounded-full transition-all duration-200 hover:scale-110"
+                      style=${{ 
+                        backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)',
+                      }}
+                      title="Copy Teams ID to clipboard"
+                    >
+                      <span className="material-icons text-sm" style=${{ color: darkMode ? LIGHT_TEAL : DARK_TEAL }}>content_copy</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <button
+                      onClick=${handleTeamsDesktopClick}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 w-fit"
+                      style=${{
+                        backgroundColor: '#464EB8',
+                        color: WHITE
+                      }}
+                    >
+                      <span className="material-icons">desktop_windows</span>
+                      Teams Desktop
+                    </button>
+                    
+                    <button
+                      onClick=${handleTeamsWebClick}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 w-fit"
+                      style=${{
+                        backgroundColor: '#5059C9',
+                        color: WHITE
+                      }}
+                    >
+                      <span className="material-icons">web</span>
+                      Teams Web
+                    </button>
+                  </div>
                 </div>
               `}
             </div>

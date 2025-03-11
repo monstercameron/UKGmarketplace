@@ -66,10 +66,10 @@ export const ContactInfoSection = ({
           className="block mb-2 text-sm font-medium"
           style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
         >
-          Teams Link (optional)
+          Teams ID (optional)
         </label>
         <input
-          type="url"
+          type="text"
           value=${teamsLink}
           onChange=${(e) => setTeamsLink(e.target.value)}
           className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
@@ -78,7 +78,7 @@ export const ContactInfoSection = ({
             color: darkMode ? WHITE : DARK_TEAL,
             border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
           }}
-          placeholder="Enter Teams chat link"
+          placeholder="Enter your Teams user ID"
         />
       </div>
     </div>

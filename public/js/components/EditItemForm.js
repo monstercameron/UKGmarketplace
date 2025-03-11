@@ -304,7 +304,10 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
         negotiable,
         paymentMethods,
         shipping: shippingOptions,
-        managementKey
+        managementKey,
+        email,
+        phone,
+        teamsLink: teamsLink
       };
       
       // STEP 1: First apply any pending image changes (order updates and deletions)
