@@ -22,7 +22,7 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
   const [price, setPrice] = React.useState(item?.price || '');
   const [condition, setCondition] = React.useState(item?.condition || 'new');
   const [location, setLocation] = React.useState(item?.location || '');
-  const [categoryId, setCategoryId] = React.useState(item?.category_id || '');
+  const [categoryId, setCategoryId] = React.useState(item?.category_id ? String(item?.category_id) : '');
   const [selectedPaymentMethods, setSelectedPaymentMethods] = React.useState({
     cash: item?.paymentMethods?.includes('cash') ?? true,
     apple_cash: item?.paymentMethods?.includes('apple_cash') ?? false,
@@ -524,7 +524,7 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
               html=${html}
               categories=${categories}
               selectedCategoryId=${categoryId}
-              onCategorySelect=${(id) => setCategoryId(id)}
+              onCategorySelect=${(id) => setCategoryId(String(id))}
             />
           </div>
 

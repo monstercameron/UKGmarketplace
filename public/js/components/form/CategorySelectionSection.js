@@ -118,59 +118,45 @@ export const CategorySelectionSection = ({
     }
   ];
   
-  // Use the provided categories if available, otherwise use the standard set
-  const displayCategories = categories.length > 0 
+  // Helper function to match a custom category name with a standard category.
+  const matchStandardCategory = (catName) => {
+    const lowerCatName = catName.toLowerCase();
+    // Attempt an exact case-insensitive match.
+    let match = standardCategories.find(sc => sc.name.toLowerCase() === lowerCatName);
+    if(match) return match;
+
+    // Mapping dictionary for common variations.
+    const categoryMappings = {
+      'computers & laptops': 'Computers',
+      'smartphones': 'Mobile Phones',
+      'tvs & monitors': 'Electronics',
+      'audio equipment': 'Electronics',
+      'gaming': 'Toys & Games',
+      'home appliances': 'Home & Kitchen',
+      'housing rentals': 'Home Improvement',
+      'cars & trucks': 'Automotive',
+      'clothing & apparel': 'Clothing',
+      'books & magazines': 'Books & Media',
+      'sports equipment': 'Sports & Outdoors'
+    };
+    if(categoryMappings[lowerCatName]) {
+      match = standardCategories.find(sc => sc.name.toLowerCase() === categoryMappings[lowerCatName].toLowerCase());
+      if(match) return match;
+    }
+
+    // Fallback: normalize by removing non-alphanumeric characters.
+    const normalizedName = lowerCatName.replace(/[^a-z0-9]/g, '');
+    match = standardCategories.find(sc => sc.name.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedName);
+    return match;
+  };
+
+  // Determine which categories to display using the provided categories or fallback to the standard list.
+  const displayCategories = categories.length > 0
     ? categories.slice(0, 20).map(cat => {
-        // Map common category names to standard ones
-        const categoryMappings = {
-          'computers & laptops': 'Computers',
-          'smartphones': 'Mobile Phones',
-          'tvs & monitors': 'Electronics',
-          'audio equipment': 'Electronics',
-          'gaming': 'Toys & Games',
-          'home appliances': 'Home & Kitchen',
-          'housing rentals': 'Home Improvement',
-          'cars & trucks': 'Automotive',
-          'clothing & apparel': 'Clothing',
-          'books & magazines': 'Books & Media',
-          'sports equipment': 'Sports & Outdoors'
-        };
-
-        // Try to find a matching standard category
-        let matchingStandardCat = null;
-
-        // 1. Try exact match
-        matchingStandardCat = standardCategories.find(sc => sc.name === cat.name);
-        if (matchingStandardCat) return { ...cat, description: matchingStandardCat.description };
-
-        // 2. Try mapped category
-        const mappedCategory = categoryMappings[cat.name.toLowerCase()];
-        if (mappedCategory) {
-          matchingStandardCat = standardCategories.find(sc => sc.name === mappedCategory);
-          if (matchingStandardCat) return { ...cat, description: matchingStandardCat.description };
-        }
-
-        // 3. Try normalized match
-        const normalizedCatName = cat.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        matchingStandardCat = standardCategories.find(sc => {
-          const normalizedStandardName = sc.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-          return normalizedCatName === normalizedStandardName;
-        });
-        if (matchingStandardCat) return { ...cat, description: matchingStandardCat.description };
-
-        // 4. Try word-by-word match
-        const catWords = cat.name.toLowerCase().split(/[\s&-]+/);
-        matchingStandardCat = standardCategories.find(sc => {
-          const standardWords = sc.name.toLowerCase().split(/[\s&-]+/);
-          return catWords.some(word => 
-            word.length > 3 && standardWords.includes(word)
-          );
-        });
-        
+        const matched = matchStandardCategory(cat.name);
         return {
-          id: cat.id,
-          name: cat.name,
-          description: matchingStandardCat?.description || `Items related to ${cat.name}`
+          ...cat,
+          description: matched ? matched.description : `Items related to ${cat.name}`
         };
       })
     : standardCategories;
@@ -180,6 +166,21 @@ export const CategorySelectionSection = ({
     a.name.localeCompare(b.name)
   );
   
+  // Filter out duplicate categories by id to ensure only a single category can be selected at a time
+  const uniqueCategories = sortedDisplayCategories.filter((cat, index, self) =>
+    index === self.findIndex((c) => c.id.toString() === cat.id.toString())
+  );
+  
+  // Helper function to get the icon key for a category.
+  const getIconKey = (name) => {
+    let iconKey = categoryToIconKey[name];
+    if(!iconKey) {
+      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      iconKey = Object.entries(categoryToIconKey).find(([key]) => key.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedName)?.[1] || 'other';
+    }
+    return iconKey;
+  };
+
   // Category button component
   const CategoryButton = ({ id, name, description }) => {
     const isSelected = selectedCategoryId === id.toString();
@@ -189,15 +190,7 @@ export const CategorySelectionSection = ({
     
     const [showPopover, setShowPopover] = React.useState(false);
     
-    // Get the icon key for this category - try exact match first, then normalized match
-    let iconKey = categoryToIconKey[name];
-    if (!iconKey) {
-      // Try normalized comparison (remove spaces, lowercase)
-      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      iconKey = Object.entries(categoryToIconKey).find(([key]) => 
-        key.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedName
-      )?.[1] || 'other';
-    }
+    const iconKey = getIconKey(name);
     const svg = categoryIcons[iconKey];
     
     return html`
@@ -256,7 +249,7 @@ export const CategorySelectionSection = ({
       </p>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        ${sortedDisplayCategories.map(category => html`
+        ${uniqueCategories.map(category => html`
           <${CategoryButton} 
             id=${category.id} 
             name=${category.name}
