@@ -86,6 +86,14 @@ export const ImageManager = ({
   React.useEffect(() => {
     const generateDataUrls = async () => {
       try {
+        // Clear existing data URLs first to prevent stale data
+        setNewFileDataUrls([]);
+        
+        // Only proceed if we have files
+        if (newFiles.length === 0) return;
+        
+        console.log('Generating data URLs for new files:', newFiles.length);
+        
         const urls = await Promise.all(
           newFiles.map(file => {
             // Skip undefined files
@@ -115,11 +123,8 @@ export const ImageManager = ({
       }
     };
 
-    if (newFiles.length > 0) {
-      generateDataUrls();
-    } else {
-      setNewFileDataUrls([]);
-    }
+    // Always regenerate data URLs when newFiles changes
+    generateDataUrls();
   }, [newFiles]);
   
   // Handle file selection
@@ -127,29 +132,78 @@ export const ImageManager = ({
     if (!canUpload) return;
     
     // Limit to max images
-    const filesToAdd = [...newFiles];
     const currentCount = isUploadMode ? uploadedFiles.length : existingImages.length;
     const maxNewFiles = maxImages - currentCount;
     
+    if (maxNewFiles <= 0) {
+      console.log('Cannot add more files: maximum reached');
+      return;
+    }
+    
+    // Create a new array by filtering duplicates
+    const newFilesToAdd = [];
+    
     for (let i = 0; i < files.length; i++) {
-      if (filesToAdd.length >= maxNewFiles) break;
+      if (newFilesToAdd.length >= maxNewFiles) break;
+      
+      const file = files[i];
       
       // Only add image files
-      if (files[i].type.startsWith('image/')) {
-        filesToAdd.push(files[i]);
+      if (!file.type.startsWith('image/')) continue;
+      
+      // In upload mode, we're replacing files rather than adding to them
+      // In reorder mode, we need to check for duplicates
+      if (isUploadMode) {
+        newFilesToAdd.push(file);
+      } else {
+        // Check if file already exists in newFiles by comparing name and size
+        const isDuplicate = newFiles.some(existingFile => 
+          existingFile.name === file.name && existingFile.size === file.size
+        );
+        
+        if (!isDuplicate) {
+          newFilesToAdd.push(file);
+        } else {
+          console.log(`Skipping duplicate file: ${file.name}`);
+        }
       }
     }
     
-    setNewFiles(filesToAdd);
+    if (newFilesToAdd.length === 0) {
+      console.log('No new files to add after filtering');
+      return;
+    }
     
-    // Call the onFilesChange callback to update the parent component in upload mode
-    if (isUploadMode && onFilesChange) {
-      console.log('Calling onFilesChange with files:', filesToAdd.length);
-      onFilesChange(filesToAdd);
-    } else if (!isUploadMode && onNewFilesChange) {
-      // In reorder mode, use onNewFilesChange to pass new files to parent
-      console.log('Calling onNewFilesChange with files:', filesToAdd.length);
-      onNewFilesChange(filesToAdd);
+    console.log(`Adding ${newFilesToAdd.length} new files`);
+    
+    // In upload mode, replace newFiles entirely (and clear uploadedFiles via callback)
+    // In reorder mode, add to existing newFiles
+    if (isUploadMode) {
+      // In upload mode, we should append to existing files, not replace them
+      // Get existing files from either uploadedFiles or newFiles
+      const existingFiles = uploadedFiles.length > 0 ? [...uploadedFiles] : [...newFiles];
+      
+      // Combine with new files
+      const updatedFiles = [...existingFiles, ...newFilesToAdd];
+      
+      // Update the local state
+      setNewFiles(newFilesToAdd); // Still only store new files in local state
+      
+      // Call the callback to update the parent component with combined files
+      if (onFilesChange) {
+        console.log('Calling onFilesChange with files:', updatedFiles.length);
+        onFilesChange(updatedFiles);
+      }
+    } else {
+      // In reorder mode, we append to existing newFiles
+      const updatedFiles = [...newFiles, ...newFilesToAdd];
+      setNewFiles(updatedFiles);
+      
+      // Call the callback to update the parent component
+      if (onNewFilesChange) {
+        console.log('Calling onNewFilesChange with files:', updatedFiles.length);
+        onNewFilesChange(updatedFiles);
+      }
     }
   };
   
@@ -513,6 +567,7 @@ export const ImageManager = ({
   React.useEffect(() => {
     if (!isUploadMode) return;
     
+    // Only log on initial mount or when key dependencies change
     console.log(`ImageManager props updated in ${mode} mode:`, {
       uploadedFiles: uploadedFiles.length,
       existingImages: existingImages.length,
@@ -525,48 +580,66 @@ export const ImageManager = ({
       showUploadButton
     });
     
-    // If we have newFiles but uploadedFiles is empty, sync them
-    if (newFiles.length > 0 && uploadedFiles.length === 0) {
-      console.log('Syncing newFiles to parent component via onFilesChange:', newFiles.length);
-      onFilesChange(newFiles);
+    // In upload mode, we should use either uploadedFiles or newFiles, not both
+    // Only update if newFiles needs to be cleared to prevent re-render loop
+    if (uploadedFiles.length > 0 && newFiles.length > 0) {
+      console.log('Using uploadedFiles as source of truth, clearing newFiles');
+      setNewFiles([]); // Clear newFiles to avoid duplication
     }
-    
-    // If we have uploadedFiles but newFiles is empty, sync them
-    if (uploadedFiles.length > 0 && newFiles.length === 0) {
-      console.log('Syncing uploadedFiles to newFiles:', uploadedFiles.length);
-      setNewFiles([...uploadedFiles]);
-    }
-  }, [isUploadMode, uploadedFiles, newFiles, mode, existingImages, itemId, managementKey, allowUploads, showUploadButton, onFilesChange]);
+  // Include newFiles in dependencies to prevent continuous re-renders
+  }, [isUploadMode, uploadedFiles, newFiles, mode, existingImages.length, itemId, managementKey, allowUploads, showUploadButton]);
   
-  // Log when reorderMode changes
+  // Log when reorderMode changes - only need to run on mount and mode changes
   React.useEffect(() => {
     console.log('Reorder mode changed:', { isReorderMode, isUploadMode });
   }, [isReorderMode, isUploadMode]);
   
-  // Log component state for debugging
-  React.useEffect(() => {
-    console.log('ImageManager render state:', {
+  // Replace constant re-render logging with a memoized log that runs only when dependencies change
+  const currentState = React.useMemo(() => {
+    const state = {
       draggedIndex,
       isUploadMode,
       isReorderMode,
-      hasImages: existingImages.length > 0,
-      hasNewFiles: newFiles.length > 0,
-      uploadedFilesCount: uploadedFiles.length,
-      existingImagesCount: existingImages.length,
-      newFilesCount: newFiles.length,
-      totalImages: (isUploadMode ? uploadedFiles.length : existingImages.length) + newFiles.length,
-      canUpload,
-      showUploadButton
-    });
-  }, [draggedIndex, isUploadMode, isReorderMode, existingImages, newFiles, uploadedFiles, canUpload, showUploadButton]);
+      hasImages,
+      hasNewFiles,
+      imageDataUrls: imageDataUrls.length,
+      newFileDataUrls: newFileDataUrls.length,
+      uploadedFiles: uploadedFiles.length,
+      newFiles: newFiles.length,
+      existingImages: existingImages.length
+    };
+    
+    console.log('ImageManager render state:', state);
+    return state;
+  }, [
+    draggedIndex, 
+    isUploadMode, 
+    isReorderMode, 
+    hasImages, 
+    hasNewFiles, 
+    imageDataUrls.length, 
+    newFileDataUrls.length, 
+    uploadedFiles.length, 
+    newFiles.length, 
+    existingImages.length
+  ]);
   
-  // Ensure draggable functionality works in all browsers
+  // Ensure draggable functionality works in all browsers - optimized to prevent re-renders
   React.useEffect(() => {
+    // Skip if no images to make draggable
+    if (!hasImages && !hasNewFiles) return;
+    
     // Add event listeners to make sure draggable works
     const makeElementsDraggable = () => {
       const draggableElements = document.querySelectorAll('[draggable="true"]');
       
+      // Skip if no elements found
+      if (draggableElements.length === 0) return;
+      
       draggableElements.forEach(el => {
+        // Only process elements that haven't been made draggable yet
+        if (el.classList.contains('draggable-item')) return;
+        
         // Ensure the element has the correct attributes
         el.setAttribute('draggable', 'true');
         
@@ -581,13 +654,11 @@ export const ImageManager = ({
     };
     
     // Run after a short delay to ensure DOM is ready
-    setTimeout(makeElementsDraggable, 500);
+    const timeoutId = setTimeout(makeElementsDraggable, 500);
     
-    // Also run when images change
-    if (hasImages || hasNewFiles) {
-      makeElementsDraggable();
-    }
-  }, [hasImages, hasNewFiles, existingImages.length, newFiles.length]);
+    // Clean up timeout on unmount
+    return () => clearTimeout(timeoutId);
+  }, [hasImages, hasNewFiles, imagesToDisplay.length, newFileDataUrls.length]);
   
   // Handle drag over for reordering new files
   const handleNewFilesDragOver = (e, index) => {
@@ -718,7 +789,7 @@ export const ImageManager = ({
           <input
             id="file-input"
             type="file"
-            onChange=${(e) => handleFileSelection(Array.from(e.target.files))}
+            onChange=${(e) => { handleFileSelection(Array.from(e.target.files)); e.target.value = ''; }}
             accept="image/*"
             multiple
             className="hidden"
