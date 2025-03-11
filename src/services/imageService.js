@@ -382,4 +382,56 @@ export const countItemImages = async (itemId) => {
     console.error('Error in countItemImages:', err);
     return Result(null, err);
   }
+};
+
+/**
+ * Deletes all images from the database and filesystem
+ * @async
+ * @returns {Promise<Result<{deletedFiles: number, imagesFound: number}>>} Result with deletion stats or error
+ */
+export const deleteAllImages = async () => {
+  try {
+    // Get all image records from the database
+    const [images, getError] = await handle(allAsync(
+      `SELECT * FROM item_images`,
+      []
+    ));
+    
+    if (getError) {
+      console.error('Error getting all images for deletion:', getError);
+      return Result(null, getError);
+    }
+    
+    // Delete all image files from disk
+    let deletedFiles = 0;
+    const imagesFound = images.length;
+    
+    for (const image of images) {
+      try {
+        const imagePath = path.join(IMAGES_DIR, image.hash_filename);
+        await fs.unlink(imagePath);
+        deletedFiles++;
+      } catch (fileErr) {
+        console.error(`Error deleting image file ${image.hash_filename}:`, fileErr);
+        // Continue with other files even if one deletion fails
+      }
+    }
+    
+    // Clear the image records from the database
+    // This will likely be handled by the database truncation, but included for completeness
+    const [deleteResult, deleteError] = await handle(runAsync(
+      `DELETE FROM item_images`,
+      []
+    ));
+    
+    if (deleteError) {
+      console.error('Error deleting all image records:', deleteError);
+      return Result(null, deleteError);
+    }
+    
+    return Result({ deletedFiles, imagesFound });
+  } catch (err) {
+    console.error('Error in deleteAllImages:', err);
+    return Result(null, err);
+  }
 }; 

@@ -6,7 +6,8 @@
  */
 
 import express from 'express';
-import { db, runAsync, allAsync } from '../../../database/schema.js';
+import { runAsync, allAsync } from '../../../database/connection.js';
+import { deleteAllImages } from '../../../services/imageService.js';
 
 const router = express.Router();
 
@@ -24,6 +25,17 @@ router.post('/truncate-database', async (req, res) => {
             return res.status(401).json({
                 error: 'Unauthorized',
                 message: 'Invalid admin password'
+            });
+        }
+        
+        // First, delete all images from the filesystem
+        const [imageDeleteResult, imageDeleteError] = await deleteAllImages();
+        
+        if (imageDeleteError) {
+            console.error('Error deleting images during database truncation:', imageDeleteError);
+            return res.status(500).json({
+                error: 'Internal Server Error',
+                message: 'Failed to delete images during database truncation'
             });
         }
         
@@ -48,7 +60,8 @@ router.post('/truncate-database', async (req, res) => {
             res.status(200).json({
                 success: true,
                 message: 'Database truncated successfully',
-                tables_affected: tables.length
+                tables_affected: tables.length,
+                images_deleted: imageDeleteResult ? imageDeleteResult.deletedFiles : 0
             });
         } catch (error) {
             // Rollback the transaction if an error occurs
