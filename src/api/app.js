@@ -145,6 +145,21 @@ logger.info('Request parsing configured', {
 app.use('/api/v1', routes);
 logger.info('API routes mounted at /api/v1 prefix');
 
+/** Setup Swagger documentation */
+if (process.env.SWAGGER_ENABLED === 'true') {
+    const swaggerPath = process.env.SWAGGER_PATH || '/api-docs';
+    app.use(
+        swaggerPath,
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerSpec, {
+            explorer: true,
+            customCss: '.swagger-ui .topbar { display: none }',
+            customSiteTitle: 'UKG Marketplace API Documentation'
+        })
+    );
+    logger.info('Swagger documentation enabled', { path: swaggerPath });
+}
+
 /** Serve static files with or without compression based on environment */
 if (isProduction) {
     // In production, use expressStaticGzip to serve pre-compressed files
@@ -184,21 +199,6 @@ app.get('*', (req, res) => {
     // Serve index.html for all other routes
     res.sendFile('index.html', { root: 'public' });
 });
-
-/** Setup Swagger documentation */
-if (process.env.SWAGGER_ENABLED === 'true') {
-    const swaggerPath = process.env.SWAGGER_PATH || '/api-docs';
-    app.use(
-        swaggerPath,
-        swaggerUi.serve,
-        swaggerUi.setup(swaggerSpec, {
-            explorer: true,
-            customCss: '.swagger-ui .topbar { display: none }',
-            customSiteTitle: 'UKG Marketplace API Documentation'
-        })
-    );
-    logger.info('Swagger documentation enabled', { path: swaggerPath });
-}
 
 /** Error handling middleware */
 app.use(errorLogger);
