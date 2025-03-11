@@ -2,6 +2,10 @@ import { DARK_TEAL, LIGHT_TEAL, WHITE, DARK_BG, PAYMENT_METHODS, SHIPPING_OPTION
 import { Toast } from './Toast.js';
 import { Breadcrumbs } from './Breadcrumbs.js';
 import { ImageManager } from './form/ImageManager.js';
+import { ConditionSelectionSection } from './form/ConditionSelectionSection.js';
+import { CategorySelectionSection } from './form/CategorySelectionSection.js';
+import { PaymentMethodsSection } from './form/PaymentMethodsSection.js';
+import { ShippingOptionsSection } from './form/ShippingOptionsSection.js';
 
 export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMode, onBack, html }) => {
   // Form state initialized with item data
@@ -693,56 +697,21 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
           </div>
 
           <!-- Condition and Category -->
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label 
-                className="block mb-2 text-sm font-medium"
-                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-              >
-                Condition <span className="text-red-500">*</span>
-              </label>
-              <select
-                value=${condition}
-                onChange=${(e) => setCondition(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                style=${{
-                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? WHITE : DARK_TEAL,
-                  border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                }}
-                required
-              >
-                <option value="new">New</option>
-                <option value="like_new">Like New</option>
-                <option value="good">Good</option>
-                <option value="fair">Fair</option>
-                <option value="poor">Poor</option>
-              </select>
-            </div>
-            <div>
-              <label 
-                className="block mb-2 text-sm font-medium"
-                style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
-              >
-                Category <span className="text-red-500">*</span>
-              </label>
-              <select
-                value=${categoryId}
-                onChange=${(e) => setCategoryId(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
-                style=${{
-                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? WHITE : DARK_TEAL,
-                  border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
-                }}
-                required
-              >
-                <option value="">Select a category</option>
-                ${categories.map(category => html`
-                  <option key=${category.id} value=${category.id}>${category.name}</option>
-                `)}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <${ConditionSelectionSection}
+              darkMode=${darkMode}
+              html=${html}
+              selectedCondition=${condition}
+              onConditionSelect=${(value) => setCondition(value)}
+            />
+            
+            <${CategorySelectionSection}
+              darkMode=${darkMode}
+              html=${html}
+              categories=${categories}
+              selectedCategoryId=${categoryId}
+              onCategorySelect=${(id) => setCategoryId(id)}
+            />
           </div>
 
           <!-- Location -->
@@ -842,196 +811,20 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
           </div>
 
           <!-- Payment Methods -->
-          <div className="mb-6">
-            <h3 
-              className="text-lg font-medium mb-4"
-              style=${{ color: darkMode ? WHITE : DARK_TEAL }}
-            >
-              Accepted Payment Methods
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              <button
-                key="cash"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('cash')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.cash 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.cash 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.cash 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">payments</span>
-                <span>Cash</span>
-              </button>
-              
-              <button
-                key="apple_cash"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('apple_cash')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.apple_cash 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.apple_cash 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.apple_cash 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">phone_iphone</span>
-                <span>Apple Cash</span>
-              </button>
-              
-              <button
-                key="cash_app"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('cash_app')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.cash_app 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.cash_app 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.cash_app 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">attach_money</span>
-                <span>Cash App</span>
-              </button>
-              
-              <button
-                key="zelle"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('zelle')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.zelle 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.zelle 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.zelle 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">swap_horiz</span>
-                <span>Zelle</span>
-              </button>
-              
-              <button
-                key="venmo"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('venmo')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.venmo 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.venmo 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.venmo 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">account_balance</span>
-                <span>Venmo</span>
-              </button>
-              
-              <button
-                key="paypal"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('paypal')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.paypal 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.paypal 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.paypal 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">payment</span>
-                <span>PayPal</span>
-              </button>
-              
-              <button
-                key="other"
-                type="button"
-                onClick=${() => handlePaymentMethodToggle('other')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                style=${{
-                  backgroundColor: selectedPaymentMethods.other 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                  color: selectedPaymentMethods.other 
-                    ? WHITE 
-                    : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                  border: '1px solid ' + (selectedPaymentMethods.other 
-                    ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                    : 'transparent')
-                }}
-              >
-                <span className="material-icons text-base">more_horiz</span>
-                <span>Other</span>
-              </button>
-            </div>
-          </div>
+          <${PaymentMethodsSection}
+            darkMode=${darkMode}
+            html=${html}
+            selectedMethods=${selectedPaymentMethods}
+            onMethodToggle=${handlePaymentMethodToggle}
+          />
 
           <!-- Shipping Options -->
-          <div className="mb-8">
-            <h3 
-              className="text-lg font-medium mb-4"
-              style=${{ color: darkMode ? WHITE : DARK_TEAL }}
-            >
-              Shipping Options
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              ${Object.entries(SHIPPING_OPTIONS).map(([option, { icon, label }]) => html`
-                <button
-                  key=${option}
-                  type="button"
-                  onClick=${() => handleShippingOptionToggle(option)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-                  style=${{
-                    backgroundColor: selectedShippingOptions[option] 
-                      ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                      : (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 48, 135, 0.05)'),
-                    color: selectedShippingOptions[option] 
-                      ? WHITE 
-                      : (darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
-                    border: '1px solid ' + (selectedShippingOptions[option] 
-                      ? (darkMode ? LIGHT_TEAL : DARK_TEAL) 
-                      : 'transparent')
-                  }}
-                >
-                  <span className="material-icons text-base">${icon}</span>
-                  <span>${label}</span>
-                </button>
-              `)}
-            </div>
-          </div>
+          <${ShippingOptionsSection}
+            darkMode=${darkMode}
+            html=${html}
+            selectedOptions=${selectedShippingOptions}
+            onOptionToggle=${handleShippingOptionToggle}
+          />
 
           <!-- Submit Button -->
           <div className="flex justify-end mt-8">
