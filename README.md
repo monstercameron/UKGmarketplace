@@ -1,53 +1,36 @@
-# UKG Marketplace
+# 🛍️ UKG Marketplace
 
-**Transform the way your organization buys, sells, and connects with UKG Marketplace - the premier internal marketplace solution for modern enterprises.**
+**Missing the centralized marketplace chat from Slack? We've got you covered!**
 
-![UKG Marketplace Banner](https://via.placeholder.com/1200x300)
+## 👋 Ah, Remember When...
 
-## 🚀 Elevate Your Organization's Exchange Economy
+Remember when finding that standing desk, selling your old monitor, or swapping office supplies was as easy as posting in the Slack marketplace channel? Those were the days! Since we've moved away from that centralized hub, things just haven't been the same.
 
-UKG Marketplace is a powerful platform that revolutionizes how employees and departments exchange goods, services, and resources within your organization. Built with modern technologies, UKG Marketplace creates a vibrant internal economy that drives efficiency, sustainability, and community.
+**That's why we built UKG Marketplace** - a simple, company-wide solution to bring back the convenience of having one place to buy, sell, and trade items with colleagues!
 
-## ✨ Key Features
+## ✨ Features That'll Make Your Life Easier
 
-### 🛒 Comprehensive Marketplace Experience
-- **Intuitive Item Listings** - Create beautiful, detailed listings with multiple images, rich descriptions, and customizable attributes
-- **Category Organization** - Browse through a hierarchical category system that makes finding exactly what you need effortless
-- **Smart Search & Filtering** - Powerful search capabilities with filters for price, condition, location, and more
-- **Responsive Design** - Perfect experience on any device - desktop, tablet, or mobile
+### 🛒 Easy Buy & Sell Experience
+- **Simple Item Listings** - Post items you want to sell or trade
+- **Company-wide Access** - Connect with colleagues across departments
+- **Search & Filter** - Find exactly what you need without hassle
+- **Item Categories** - Browse by item types and more
 
-### 📱 User-Centric Experience
-- **No Account Required** - Simple email-based identification system eliminates registration barriers
-- **Item Watching** - Subscribe to items of interest and receive updates on price changes or availability
-- **Customizable Notifications** - Choose your preferred notification frequency: real-time, daily, or weekly digests
-- **Management Keys** - Secure, token-based system for managing your listings without passwords
+### 🚀 Streamlined Marketplace Functions
+- **Basic Listings** - Add descriptions and details about your items
+- **Item Status** - See what's available and what's been sold
+- **Contact Info** - Connect with sellers directly
+- **Clean Interface** - No complicated bells and whistles - just what you need
 
-### 💳 Flexible Payment Options
-- **Multiple Payment Methods** - Support for various internal payment mechanisms
-- **Secure Transactions** - Built with security best practices to protect sensitive information
-- **Payment Integration** - Seamlessly connects with your organization's existing financial systems
+## 📚 Documentation
 
-### 🔧 Enterprise-Ready Architecture
-- **Scalable Backend** - Handles thousands of listings and users with minimal resource requirements
-- **Easy Deployment** - Simple setup process with clear documentation
-- **Customizable** - Adapt the marketplace to your organization's branding and specific needs
-- **API-First Design** - Comprehensive API for integration with other internal systems
-
-## 🌟 Why Choose UKG Marketplace?
-
-### For Employees
-- **Declutter & Earn** - Turn unused items into cash or exchange them for things you need
-- **Find Resources** - Discover equipment, supplies, and services available within your organization
-- **Build Connections** - Create meaningful workplace relationships through marketplace interactions
-- **Save Time** - Quick and easy access to resources without lengthy procurement processes
-
-### For Organizations
-- **Promote Sustainability** - Reduce waste by encouraging reuse and repurposing of resources
-- **Cost Savings** - Decrease procurement expenses by utilizing existing internal resources
-- **Enhanced Collaboration** - Foster cross-departmental connections and resource sharing
-- **Improved Employee Experience** - Provide a valuable service that enhances workplace satisfaction
+All documentation lives in the `/docs` directory:
+- **Go Style Guide** (`go-style-guide.md`) - Coding standards for contributors
+- Additional documentation will be added as the project evolves
 
 ## 🚀 Getting Started
+
+Want to run UKG Marketplace locally? It's easy!
 
 ```bash
 # Clone the repository
@@ -59,19 +42,45 @@ npm install
 # Configure your environment
 cp .env.example .env
 
-# Initialize the database
+# Initialize the database with sample data
 npm run db:init-and-seed
 
-# Start the development server
+# Start the development server with live CSS building
 npm run dev:full
 ```
 
-## 📚 Documentation
+The server will be available at `http://localhost:3000` (or your configured PORT).
 
-For detailed documentation on setup, configuration, and API endpoints, please visit our [Documentation Portal](https://github.com/yourusername/ukg-marketplace/wiki) or refer to the `/docs` directory.
+## 🧰 Tech Stack
+
+Built with modern, reliable technologies:
+- **Node.js & Express** - Rock-solid backend
+- **SQLite** - Simple but powerful database
+- **TailwindCSS** - Beautiful, responsive styling
+- **And more!** - Check package.json for the full list
+
+## 🛠️ Future Roadmap
+
+We're just getting started! Some features we're considering for future releases:
+- Favorites system
+- In-app messaging
+- User ratings
+- Department highlights
+- And more based on your feedback!
+
+## 🤝 Need Help or Have Ideas?
+
+This project exists because we all missed having a centralized marketplace. If you:
+
+- 🐛 Found a bug
+- 💡 Have a feature idea
+- 🙋 Want to contribute
+- 🤔 Just have questions
+
+Contact **Cam Cameron** at [cam.cameron@ukg.com](mailto:cam.cameron@ukg.com)
 
 ---
 
 <p align="center">
-  <strong>UKG Marketplace</strong> - Connecting Resources, Empowering People
+  <strong>UKG Marketplace</strong> - One place for all your workplace marketplace needs!
 </p>
