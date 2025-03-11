@@ -612,6 +612,22 @@ export const App = ({ html }) => {
                 <span className="hidden sm:inline">Admin</span>
               </button>
 
+              <!-- RSS Feed Button -->
+              <a
+                href="/api/v1/rss"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-white hover:bg-opacity-10"
+                style=${{
+                  color: WHITE,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }}
+                title="RSS Feed"
+              >
+                <span className="material-icons">rss_feed</span>
+                <span className="hidden sm:inline">RSS</span>
+              </a>
+
               <!-- Theme Toggle -->
               <${ThemeToggle}
                 darkMode=${darkMode}
