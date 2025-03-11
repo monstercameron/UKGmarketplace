@@ -7,6 +7,7 @@
  * @requires ./messages
  * @requires ./categories
  * @requires ./images
+ * @requires ./admin
  */
 
 import express from 'express';
@@ -16,6 +17,7 @@ import messageRoutes from './messages.js';
 import categoryRoutes from './categories.js';
 import imageRoutes from './images.js';
 import searchRoutes from './search.js';
+import adminRoutes from './admin.js';
 
 const router = express.Router();
 
@@ -31,6 +33,7 @@ router.use('/messages', messageRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/images', imageRoutes);
 router.use('/search', searchRoutes);
+router.use('/admin', adminRoutes);
 
 /** Handle 404 errors */
 router.use((req, res) => {

@@ -19,6 +19,11 @@ export const AdminPanel = ({ darkMode, onBack, html }) => {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [adminPassword, setAdminPassword] = React.useState('');
   
+  // State for database truncation
+  const [showTruncateModal, setShowTruncateModal] = React.useState(false);
+  const [truncatePassword, setTruncatePassword] = React.useState('');
+  const [truncateLoading, setTruncateLoading] = React.useState(false);
+  
   // Check for stored authentication on mount
   React.useEffect(() => {
     const checkStoredAuth = () => {
@@ -106,7 +111,7 @@ export const AdminPanel = ({ darkMode, onBack, html }) => {
     e.preventDefault();
     // In a real app, this would be validated against a server endpoint
     // that checks the password against the ADMIN_PASSWORD environment variable
-    if (adminPassword === 'password') {
+    if (adminPassword === 'password123') {
       setIsAuthenticated(true);
       setAdminPassword('');
       
@@ -229,6 +234,60 @@ export const AdminPanel = ({ darkMode, onBack, html }) => {
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  // Handle database truncation
+  const handleTruncateDatabase = async (e) => {
+    e.preventDefault();
+    
+    if (!confirm('WARNING: This will DELETE ALL DATA from the database. This action CANNOT be undone. Are you absolutely sure you want to continue?')) {
+      return;
+    }
+    
+    setTruncateLoading(true);
+    
+    try {
+      const response = await fetch('/api/v1/admin/truncate-database', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          password: truncatePassword
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to truncate database');
+      }
+      
+      // Clear all form inputs
+      setTruncatePassword('');
+      
+      // Close the modal
+      setShowTruncateModal(false);
+      
+      // Show success message
+      setToast({
+        show: true,
+        message: 'Database truncated successfully',
+        type: 'success'
+      });
+      
+      // Refresh the items list
+      fetchItems(1);
+    } catch (err) {
+      console.error('Error truncating database:', err);
+      setToast({
+        show: true,
+        message: `Error: ${err.message}`,
+        type: 'error'
+      });
+    } finally {
+      setTruncateLoading(false);
     }
   };
   
@@ -375,6 +434,17 @@ export const AdminPanel = ({ darkMode, onBack, html }) => {
             >
               <span className="material-icons">add</span>
               <span>Add New Item</span>
+            </button>
+            <button
+              onClick=${() => setShowTruncateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
+              style=${{
+                backgroundColor: darkMode ? 'rgba(220, 38, 38, 0.8)' : 'rgba(220, 38, 38, 0.9)',
+                color: WHITE
+              }}
+            >
+              <span className="material-icons">delete_forever</span>
+              <span>Truncate Database</span>
             </button>
             <button
               onClick=${onBack}
@@ -659,6 +729,103 @@ export const AdminPanel = ({ darkMode, onBack, html }) => {
           </div>
         `}
       </div>
+      
+      ${showTruncateModal && html`
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full mx-4"
+            style=${{
+              backgroundColor: darkMode ? 'rgba(17, 24, 39, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
+            }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 
+                className="text-xl font-bold flex items-center gap-2"
+                style=${{ color: darkMode ? WHITE : DARK_TEAL }}
+              >
+                <span className="material-icons text-red-500">warning</span>
+                Truncate Database
+              </h2>
+              <button
+                onClick=${() => setShowTruncateModal(false)}
+                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
+                title="Close"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <div 
+                className="p-4 mb-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+              >
+                <p className="font-bold mb-2">⚠️ WARNING: DESTRUCTIVE ACTION ⚠️</p>
+                <p>This will DELETE ALL DATA from the database.</p>
+                <p>This action CANNOT be undone.</p>
+              </div>
+              
+              <form onSubmit=${handleTruncateDatabase}>
+                <div className="mb-4">
+                  <label 
+                    className="block mb-2 text-sm font-medium"
+                    style=${{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)' }}
+                  >
+                    Enter Admin Password to Confirm
+                  </label>
+                  <input
+                    type="password"
+                    value=${truncatePassword}
+                    onChange=${(e) => setTruncatePassword(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg transition-all duration-300 focus:ring-2 focus:outline-none"
+                    style=${{
+                      backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                      color: darkMode ? WHITE : DARK_TEAL,
+                      border: '1px solid ' + (darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'),
+                    }}
+                    placeholder="Enter password to confirm"
+                    required
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick=${() => setShowTruncateModal(false)}
+                    className="px-4 py-2 rounded-lg transition-all duration-300"
+                    style=${{
+                      backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                      color: darkMode ? WHITE : DARK_TEAL
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled=${truncateLoading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
+                    style=${{
+                      backgroundColor: 'rgba(220, 38, 38, 0.9)',
+                      color: WHITE,
+                      opacity: truncateLoading ? 0.7 : 1
+                    }}
+                  >
+                    ${truncateLoading ? html`
+                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                      Processing...
+                    ` : html`
+                      <span className="material-icons">delete_forever</span>
+                      Truncate Database
+                    `}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `}
     </div>
   `;
 }; 
