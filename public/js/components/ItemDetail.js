@@ -3,6 +3,7 @@ import { Breadcrumbs } from './Breadcrumbs.js';
 import { ImageCarousel } from './ImageCarousel.js';
 import { Toast } from './Toast.js';
 import { categoryIcons, categoryToIconKey } from '../utils/categoryIcons.js';
+import { formatMarkdown } from '../utils/markdown.js';
 
 export const ItemDetail = ({ item, loading, onBack, darkMode, html }) => {
   const [showManagementKeyModal, setShowManagementKeyModal] = React.useState(false);
@@ -646,12 +647,12 @@ export const ItemDetail = ({ item, loading, onBack, darkMode, html }) => {
 
           <!-- Description -->
           <div 
-            className="prose prose-lg max-w-none"
+            className=${`prose prose-lg max-w-none ${darkMode ? 'dark-mode' : ''}`}
             style=${{ 
               color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'
             }}
             dangerouslySetInnerHTML=${{ 
-              __html: window.marked.parse(itemData.description || '')
+              __html: formatMarkdown(itemData.description || '')
             }}
           ></div>
 

@@ -77,6 +77,95 @@
       .item-3d:hover .item-3d-inner {
         transform: translateZ(-5px);
       }
+      
+      /* Enhanced markdown styling */
+      .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .prose h1 { font-size: 2em; }
+      .prose h2 { font-size: 1.5em; }
+      .prose h3 { font-size: 1.25em; }
+      .prose p {
+        margin-top: 0.75em;
+        margin-bottom: 0.75em;
+      }
+      .prose ul, .prose ol {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+        padding-left: 1.5em;
+      }
+      .prose ul { list-style-type: disc; }
+      .prose ol { list-style-type: decimal; }
+      .prose li {
+        margin-top: 0.25em;
+        margin-bottom: 0.25em;
+      }
+      .prose a {
+        color: #026ab2;
+        text-decoration: underline;
+        transition: all 0.2s;
+      }
+      .prose a:hover {
+        color: #014474;
+      }
+      .prose blockquote {
+        border-left: 4px solid #e2e8f0;
+        padding-left: 1em;
+        margin-left: 0;
+        margin-right: 0;
+        font-style: italic;
+      }
+      .prose code {
+        background-color: rgba(0, 0, 0, 0.05);
+        padding: 0.1em 0.2em;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 0.9em;
+      }
+      .prose pre {
+        background-color: rgba(0, 0, 0, 0.05);
+        padding: 1em;
+        border-radius: 5px;
+        overflow-x: auto;
+        margin: 1em 0;
+      }
+      .prose pre code {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        display: block;
+        white-space: pre;
+      }
+      .prose hr {
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 2em 0;
+      }
+      .prose img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        margin: 1em 0;
+      }
+      /* Dark mode styles for markdown */
+      .dark-mode .prose code {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .dark-mode .prose pre {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      .dark-mode .prose blockquote {
+        border-left-color: rgba(255, 255, 255, 0.2);
+      }
+      .dark-mode .prose a {
+        color: #7dd3fc;
+      }
+      .dark-mode .prose a:hover {
+        color: #bae6fd;
+      }
     </style>
     <!-- Dependencies -->
     <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
