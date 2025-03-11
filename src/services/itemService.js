@@ -289,9 +289,8 @@ export const createItem = async (categoryId, {
             email,
             phone,
             teams_link,
-            management_key,
-            payment_methods
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            management_key
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
         const insertParams = [
             parsedCategoryId, 
@@ -305,8 +304,7 @@ export const createItem = async (categoryId, {
             email,
             phone,
             teamsLink,
-            managementKey,
-            paymentMethodsJson
+            managementKey
         ];
         
         console.log('Insert SQL:', insertSql);
@@ -322,81 +320,46 @@ export const createItem = async (categoryId, {
             email,
             phone,
             teamsLink,
-            managementKey ? 'valid key present' : 'no key',
-            paymentMethodsJson ? 'valid payment methods present' : 'no payment methods'
+            managementKey ? 'valid key present' : 'no key'
         ]);
 
         const [result, error] = await handle(runAsync(insertSql, insertParams));
-
+        
+        // Handle error from item insertion
         if (error) {
             console.error('Error inserting item:', error);
             return Result(null, error);
         }
-
-        console.log('Item inserted successfully, result:', result);
         
-        // Handle the case where result might be null or undefined
-        let itemId;
-        if (result && result.insertId) {
-            itemId = result.insertId;
-        } else {
-            // If we don't have an insertId, try to get the last inserted ID directly from the database
-            console.log('No insertId in result, trying to get last inserted ID...');
-            const [lastIdResult, lastIdError] = await handle(getAsync('SELECT last_insert_rowid() as id'));
-            
-            if (lastIdError) {
-                console.error('Error getting last inserted ID:', lastIdError);
-                return Result(null, new Error('Failed to get item ID after creation'));
-            }
-            
-            if (!lastIdResult || !lastIdResult.id) {
-                console.error('No last inserted ID found:', lastIdResult);
-                return Result(null, new Error('Failed to get item ID after creation'));
-            }
-            
-            itemId = lastIdResult.id;
-        }
+        const itemId = result.insertId;
         
-        console.log('Item ID:', itemId);
-
-        // Add payment methods
+        // Add payment methods using junction table (item_payment_methods)
         if (paymentMethods && paymentMethods.length > 0) {
-            console.log('Adding payment methods:', paymentMethods);
-            // First, get payment method IDs from their keys
+            // First, get payment method IDs from their slugs
             const paymentMethodsPlaceholders = paymentMethods.map(() => '?').join(',');
-            console.log('Payment methods placeholders:', paymentMethodsPlaceholders);
-            
             const [paymentMethodsResult, pmError] = await handle(allAsync(
                 `SELECT id, slug FROM payment_methods WHERE slug IN (${paymentMethodsPlaceholders})`,
                 paymentMethods
             ));
-
+            
             if (pmError) {
                 console.error('Error getting payment methods:', pmError);
-                return Result(null, pmError);
-            }
-
-            console.log('Payment methods result:', paymentMethodsResult);
-
-            // Map payment method keys to IDs
-            const paymentMethodIds = paymentMethodsResult.map(pm => pm.id);
-            console.log('Payment method IDs:', paymentMethodIds);
-
-            if (paymentMethodIds.length > 0) {
-                // SQLite doesn't support the MySQL-style VALUES ? syntax for batch inserts
-                // We need to insert each payment method individually
-                for (const pmId of paymentMethodIds) {
-                    console.log('Inserting payment method:', pmId, 'for item:', itemId);
-                    const [insertResult, insertError] = await handle(runAsync(
-                        'INSERT INTO item_payment_methods (item_id, payment_method_id) VALUES (?, ?)',
-                        [itemId, pmId]
-                    ));
-
-                    if (insertError) {
-                        console.error('Error inserting payment method:', insertError);
-                        // Continue with other payment methods even if one fails
-                    } else {
-                        console.log('Payment method inserted successfully:', insertResult);
+                // Continue with item creation even if payment methods failed
+            } else if (paymentMethodsResult && paymentMethodsResult.length > 0) {
+                // Map payment method keys to IDs
+                const paymentMethodIds = paymentMethodsResult.map(pm => pm.id);
+                
+                if (paymentMethodIds.length > 0) {
+                    for (const pmId of paymentMethodIds) {
+                        const [_, insertError] = await handle(runAsync(
+                            'INSERT INTO item_payment_methods (item_id, payment_method_id) VALUES (?, ?)',
+                            [itemId, pmId]
+                        ));
+                        
+                        if (insertError) {
+                            console.error('Error inserting payment method:', insertError);
+                            // Continue with other payment methods even if one fails
+                        }
                     }
                 }
             }
@@ -844,20 +807,15 @@ export const updateItem = async (id, managementKey, {
             console.log('Payment method IDs:', paymentMethodIds);
 
             if (paymentMethodIds.length > 0) {
-                // SQLite doesn't support the MySQL-style VALUES ? syntax for batch inserts
-                // We need to insert each payment method individually
                 for (const pmId of paymentMethodIds) {
-                    console.log('Inserting payment method:', pmId, 'for item:', id);
-                    const [insertResult, insertError] = await handle(runAsync(
+                    const [_, insertError] = await handle(runAsync(
                         'INSERT INTO item_payment_methods (item_id, payment_method_id) VALUES (?, ?)',
                         [id, pmId]
                     ));
-
+                    
                     if (insertError) {
                         console.error('Error inserting payment method:', insertError);
                         // Continue with other payment methods even if one fails
-                    } else {
-                        console.log('Payment method inserted successfully:', insertResult);
                     }
                 }
             }
