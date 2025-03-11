@@ -1,15 +1,18 @@
 {
   "name": "ukg-marketplace",
   "version": "1.0.0",
-  "description": "A marketplace application for UKG",
+  "description": "UKG Marketplace with cached CDN resources",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node server.js",
     "dev": "cross-env NODE_ENV=development nodemon server.js",
-    "test": "jest",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint:backend": "node scripts/lint-backend.js",
+    "lint:frontend": "node scripts/lint-frontend.js",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
     "lint:backend:fix": "node scripts/lint-backend.js --fix",
     "lint:logger": "node scripts/lint-backend.js",
     "lint:logger:fix": "node scripts/lint-backend.js --fix",
@@ -25,14 +28,22 @@
     "build": "npm run build:css && npm run compress:static",
     "dev:full": "concurrently \"cross-env NODE_ENV=development nodemon server.js\" \"npm run watch:css\"",
     "db:init": "node src/database/schema.js",
-    "db:seed": "node src/database/seed.js",
-    "db:init-and-seed": "node scripts/db-init-seed.js",
+    "db:seed": "node scripts/seed-db.js",
+    "db:migrate": "node scripts/migrate-db.js",
     "db:reset": "node scripts/reset-db.js",
     "db:reset-safe": "node scripts/reset-db-safe.js",
     "db:find-lock": "node scripts/find-db-lock.js",
-    "db:reset-force": "node scripts/reset-db-force.js"
+    "db:reset-force": "node scripts/reset-db-force.js",
+    "cache-cdn": "node scripts/cache-cdn.js",
+    "download-material-icon-font": "node scripts/download-material-icon-font.js",
+    "download-all-cdn": "npm run cache-cdn && npm run download-material-icon-font"
   },
-  "keywords": [],
+  "keywords": [
+    "UKG",
+    "marketplace",
+    "cdn",
+    "cache"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
