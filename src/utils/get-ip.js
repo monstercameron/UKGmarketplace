@@ -1,9 +1,9 @@
 /**
  * Helper script to find local IP address for RSS feed configuration
- * Run with: node get-ip.js
+ * Run with: node src/utils/get-ip.js
  */
 
-import { getLocalIp, printAllNetworkInterfaces } from './src/utils/getLocalIp.js';
+import { getLocalIp, printAllNetworkInterfaces } from './getLocalIp.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -25,5 +25,5 @@ if (process.argv.includes('--all')) {
   printAllNetworkInterfaces();
 }
 
-console.log('\nTo see all network interfaces, run: node get-ip.js --all');
+console.log('\nTo see all network interfaces, run: node src/utils/get-ip.js --all');
 console.log('After updating .env, restart the server for changes to take effect.\n'); 
