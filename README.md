@@ -42,14 +42,17 @@ npm install
 # Configure your environment
 cp .env.example .env
 
-# Initialize the database with sample data
-npm run db:init-and-seed
+# Initialize the database (required)
+npm run db:init
+
+# Seed the database with sample data (optional)
+npm run db:seed
 
 # Start the development server with live CSS building
 npm run dev:full
 ```
 
-The server will be available at `http://localhost:3000` (or your configured PORT).
+The server will be available at `http://localhost:3001` (or your configured PORT).
 
 ## 🧰 Tech Stack
 
