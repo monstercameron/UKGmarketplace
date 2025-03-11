@@ -219,9 +219,13 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
   };
 
   // Handle images change from the ImageManager component
-  const handleImagesChange = (newImages) => {
-    console.log('Images changed in EditItemForm:', newImages);
+  const handleImagesChange = (newImages, deleteImagesFunc) => {
     setItemImages(newImages);
+    
+    // Store the deleteImages function if provided
+    if (deleteImagesFunc && typeof deleteImagesFunc === 'function') {
+      window.deleteMarkedImages = deleteImagesFunc;
+    }
   };
 
   const handlePaymentMethodToggle = (method) => {
@@ -274,134 +278,78 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
-    // Debug the form submission
-    console.log('Submitting form with management key:', managementKey ? `${managementKey.substring(0, 5)}...` : 'none');
-
-    // Validate form
-    if (!title || !description || !price || !condition || !location || !categoryId || !email) {
-      setToast({
-        show: true,
-        message: 'Please fill in all required fields',
-        type: 'error'
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Validate management key
-    if (!managementKey) {
-      setToast({
-        show: true,
-        message: 'Management key is required',
-        type: 'error'
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Convert selected payment methods to array of keys
-    const paymentMethodsArray = Object.entries(selectedPaymentMethods)
-      .filter(([_, selected]) => selected)
-      .map(([method]) => method);
-
-    if (paymentMethodsArray.length === 0) {
-      setToast({
-        show: true,
-        message: 'Please select at least one payment method',
-        type: 'error'
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Convert selected shipping options to array of keys
-    const shippingOptionsArray = Object.entries(selectedShippingOptions)
-      .filter(([_, selected]) => selected)
-      .map(([option]) => option);
-
-    if (shippingOptionsArray.length === 0) {
-      setToast({
-        show: true,
-        message: 'Please select at least one shipping option',
-        type: 'error'
-      });
-      setLoading(false);
-      return;
-    }
-
+    
     try {
-      const itemId = item?.id || window.location.hash.substring(1).split('/').pop();
+      setLoading(true);
+      setError(null);
       
-      if (!itemId) {
-        throw new Error('Item ID not found');
-      }
-
-      // Create the request payload with the correct field names
-      const requestPayload = {
-        managementKey: managementKey,
+      // Get the list of selected payment methods
+      const paymentMethods = Object.entries(selectedPaymentMethods)
+        .filter(([_, selected]) => selected)
+        .map(([method]) => method);
+      
+      // Get the list of selected shipping options
+      const shippingOptions = Object.entries(selectedShippingOptions)
+        .filter(([_, selected]) => selected)
+        .map(([option]) => option);
+      
+      // Build the request body
+      const data = {
         title,
         description,
         price: parseFloat(price),
-        condition,
+        category_id: parseInt(categoryId, 10) || null,
         location,
-        categoryId: parseInt(categoryId),
-        shipping: shippingOptionsArray,
-        paymentMethods: paymentMethodsArray,
+        condition,
         negotiable,
-        email,
-        phone: phone || null,
-        teamsLink: teamsLink || null
+        paymentMethods,
+        shipping: shippingOptions,
+        managementKey
       };
-
-      console.log('Sending update request for item ID:', itemId);
-
-      const response = await fetch(`/api/v1/items/${itemId}`, {
+      
+      // STEP 1: First apply any pending image changes (order updates and deletions)
+      // This must happen BEFORE updating the item, as it may change the image list
+      let imageSuccess = true;
+      if (window.applyImageChanges && typeof window.applyImageChanges === 'function') {
+        try {
+          setToast({
+            show: true,
+            message: 'Updating image order and processing deletions...',
+            type: 'info'
+          });
+          
+          imageSuccess = await window.applyImageChanges();
+          if (!imageSuccess) {
+            console.warn('Some image operations failed, but continuing with item update');
+          }
+        } catch (imageError) {
+          console.error('Error applying image changes:', imageError);
+          imageSuccess = false;
+        }
+      }
+      
+      // STEP 2: Update the item data
+      setToast({
+        show: true,
+        message: 'Saving item changes...',
+        type: 'info'
+      });
+      
+      const response = await fetch(`/api/v1/items/${item.id}?managementKey=${encodeURIComponent(managementKey)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestPayload)
+        body: JSON.stringify(data)
       });
-
-      const responseData = await response.json();
+      
+      const result = await response.json();
       
       if (!response.ok) {
-        console.error('Error response:', responseData);
-        throw new Error(responseData.error || 'Failed to update item');
-      }
-
-      console.log('Update successful:', responseData);
-      
-      // Ensure image order is saved
-      if (itemImages.length > 0) {
-        try {
-          // Create an array of image IDs in the current order
-          const imageIds = itemImages.map(img => img.id);
-          
-          // Send the order to the server
-          const imageOrderResponse = await fetch(`/api/v1/items/${itemId}/images/reorder?managementKey=${encodeURIComponent(managementKey)}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ imageIds })
-          });
-          
-          if (!imageOrderResponse.ok) {
-            console.error('Failed to update image order during form submission:', imageOrderResponse.status);
-          } else {
-            console.log('Image order updated successfully during form submission');
-          }
-        } catch (err) {
-          console.error('Error updating image order during form submission:', err);
-        }
+        throw new Error(result.error || 'Failed to update item');
       }
       
-      // Upload new images if any new files have been added in reorder mode
+      // STEP 3: Upload any new images
       if (newFiles.length > 0) {
         try {
           setToast({
@@ -420,36 +368,29 @@ export const EditItemForm = ({ item, managementKey: initialManagementKey, darkMo
         }
       }
       
-      setSuccess(true);
+      // Show a success message that includes info about any image failures
       setToast({
         show: true,
-        message: 'Item updated successfully!',
-        type: 'success'
+        message: imageSuccess 
+          ? 'Item updated successfully!' 
+          : 'Item updated, but some image operations failed.',
+        type: imageSuccess ? 'success' : 'warning'
       });
-
-      // Navigate back to item detail page after a short delay
+      
+      setSuccess(true);
+      
+      // Redirect after a short delay
       setTimeout(() => {
-        window.location.hash = `/item/${itemId}`;
-        
-        // Dispatch route change event with updated item
-        window.dispatchEvent(new CustomEvent('routechange', {
-          detail: {
-            route: `/item/${itemId}`,
-            updatedItem: {
-              ...item,
-              ...requestPayload,
-              id: itemId,
-              management_key: managementKey
-            }
-          }
-        }));
-      }, 1500);
-
+        if (onBack) {
+          onBack();
+        }
+      }, 2000);
     } catch (err) {
       console.error('Error updating item:', err);
+      setError(err.message || 'Failed to update item');
       setToast({
         show: true,
-        message: err.message,
+        message: `Error: ${err.message || 'Failed to update item'}`,
         type: 'error'
       });
     } finally {

@@ -35,6 +35,11 @@ export const ImageManager = ({
   const [uploading, setUploading] = React.useState(false);
   const [newFiles, setNewFiles] = React.useState([]);
   const [newFileDataUrls, setNewFileDataUrls] = React.useState([]);
+  const [imagesToDelete, setImagesToDelete] = React.useState([]);
+  
+  // Add state for pending operations
+  const [pendingImageDeletes, setPendingImageDeletes] = React.useState([]);
+  const [pendingOrderChange, setPendingOrderChange] = React.useState(false);
   
   const isReorderMode = mode === 'reorder';
   const isUploadMode = mode === 'upload';
@@ -317,7 +322,12 @@ export const ImageManager = ({
         
         // Update the images
         onImagesChange(newImages);
+        
+        // Mark that the order has changed so we know to update it on the server
+        setPendingOrderChange(true);
+        
         console.log('Images reordered in reorder mode:', newImages);
+        console.log('Order change is now pending...');
       } else {
         console.error('Dragged item is undefined, cannot reorder');
       }
@@ -351,50 +361,15 @@ export const ImageManager = ({
       // Reset dragged index
       setDraggedIndex(null);
       
-      // Only update the server if we're in reorder mode and have a valid drag operation
+      // We used to update the server here with updateImageOrder(),
+      // but now we just mark the change as pending and handle it during form submission
       if (isReorderMode && itemId && managementKey) {
-        updateImageOrder();
+        console.log('Image reordering complete - changes will be applied when form is saved');
       }
       
       console.log('Drag end successful');
     } catch (error) {
       console.error('Error in drag end:', error);
-    }
-  };
-  
-  // Update image order on the server (for reorder mode)
-  const updateImageOrder = async () => {
-    if (!isReorderMode) return;
-    
-    console.log('Updating image order on server:', {
-      itemId,
-      imageIds: existingImages.map(img => img.id)
-    });
-    
-    try {
-      setError(null);
-      
-      // Create an array of image IDs in the current order
-      const imageIds = existingImages.map(img => img.id);
-      
-      // Send the order to the server
-      const response = await fetch(`/api/v1/items/${itemId}/images/reorder?managementKey=${encodeURIComponent(managementKey)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ imageIds })
-      });
-      
-      if (!response.ok) {
-        console.error('Failed to update image order:', response.status);
-        setError('Failed to update image order. Your changes are saved locally but may not persist after refresh.');
-      } else {
-        console.log('Image order updated successfully on server');
-      }
-    } catch (err) {
-      console.error('Error updating image order:', err);
-      setError('Error updating image order. Please try again.');
     }
   };
   
@@ -405,7 +380,7 @@ export const ImageManager = ({
       newFiles.splice(index, 1);
       onFilesChange(newFiles);
     } else if (isReorderMode) {
-      // For existing items, we'll need to call the API to delete the image
+      // For existing items, we'll mark the image for deletion
       const imageToRemove = existingImages[index];
       
       // Make sure the image exists at this index
@@ -419,33 +394,139 @@ export const ImageManager = ({
         return;
       }
       
-      removeExistingImage(imageToRemove.id);
+      // Add to pending deletes list
+      setPendingImageDeletes(prev => [...prev, imageToRemove.id]);
+      
+      // Remove from the visible list without calling the API yet
+      const newImages = [...existingImages];
+      newImages.splice(index, 1);
+      onImagesChange(newImages);
+      
+      // Mark order as changed since we removed an image
+      setPendingOrderChange(true);
+      
+      console.log(`Image ${imageToRemove.id} marked for deletion. Will be deleted when form is saved.`);
     }
   };
   
-  // Remove an existing image from the server
+  // Remove an existing image from the server - now used during form submission
   const removeExistingImage = async (imageId) => {
     try {
-      setUploading(true);
+      console.log(`Deleting image ID ${imageId} for item ${itemId}`);
       
-      const response = await fetch(`/api/v1/images/${imageId}?managementKey=${encodeURIComponent(managementKey)}`, {
-        method: 'DELETE'
+      // The correct URL format includes both itemId and imageId
+      const response = await fetch(`/api/v1/images/${itemId}/${imageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ managementKey })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to delete image');
+        throw new Error(`Failed to delete image: ${response.status}`);
       }
       
-      // Update the existingImages array
-      const newImages = existingImages.filter(img => img.id !== imageId);
-      onImagesChange(newImages);
+      return true;
     } catch (err) {
       console.error('Error deleting image:', err);
       setError('Failed to delete image');
+      return false;
+    }
+  };
+  
+  // Update image order on the server
+  const updateImageOrder = async () => {
+    try {
+      if (existingImages.length === 0) return true;
+      
+      console.log('Updating image order...');
+      
+      // Create an array of orderUpdates objects as expected by the API
+      const orderUpdates = existingImages.map((img, index) => ({
+        id: img.id,
+        order: index
+      }));
+      
+      // Send the order to the server using the correct endpoint
+      const response = await fetch(`/api/v1/images/${itemId}/order`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          managementKey,
+          orderUpdates
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update image order: ${response.status}`);
+      }
+      
+      // Reset the pending order change flag
+      setPendingOrderChange(false);
+      return true;
+    } catch (err) {
+      console.error('Error updating image order:', err);
+      setError('Failed to update image order');
+      return false;
+    }
+  };
+  
+  // Apply all pending changes - to be called by parent component on form submit
+  const applyPendingChanges = async () => {
+    setUploading(true);
+    let success = true;
+    
+    try {
+      // Step 1: Update image order if needed
+      if (pendingOrderChange) {
+        const orderResult = await updateImageOrder();
+        if (!orderResult) success = false;
+      }
+      
+      // Step 2: Process deletions after order is updated
+      if (pendingImageDeletes.length > 0) {
+        console.log(`Processing ${pendingImageDeletes.length} pending image deletions...`);
+        
+        for (const imageId of pendingImageDeletes) {
+          const deleteResult = await removeExistingImage(imageId);
+          if (!deleteResult) success = false;
+        }
+        
+        // Clear the pending deletes list regardless of success
+        setPendingImageDeletes([]);
+      }
+      
+      return success;
+    } catch (err) {
+      console.error('Error applying pending changes:', err);
+      return false;
     } finally {
       setUploading(false);
     }
   };
+  
+  // Expose the applyPendingChanges function to the parent component
+  React.useEffect(() => {
+    if (isReorderMode && itemId && managementKey) {
+      // Share the applyPendingChanges function with the parent
+      if (typeof onImagesChange === 'function') {
+        // Simple marker to prevent infinite rerenders
+        if (!window._imageManagerApplyFuncSet) {
+          window._imageManagerApplyFuncSet = true;
+          window.applyImageChanges = applyPendingChanges;
+        }
+      }
+    }
+    
+    return () => {
+      // Clean up on unmount
+      window._imageManagerApplyFuncSet = false;
+      window.applyImageChanges = null;
+    };
+  }, [isReorderMode, itemId, managementKey, pendingImageDeletes.length, pendingOrderChange]);
   
   // Set an image as primary
   const handleSetPrimary = async (index) => {
@@ -665,19 +746,19 @@ export const ImageManager = ({
     e.preventDefault();
     e.stopPropagation();
     
+    // Add a class to indicate this is a drop target
+    e.currentTarget.classList.add('drop-target');
+    
     // Set the drop effect
     e.dataTransfer.dropEffect = 'move';
     
-    // Calculate the actual index in the combined array
-    const actualIndex = existingImages.length + index;
+    // Calculate the actual index within newFiles
+    const actualIndex = index;
     
     // Don't do anything if we're dragging over the same item or no item is being dragged
-    if (draggedIndex === null || draggedIndex === actualIndex) return;
+    if (draggedIndex === null || draggedIndex === existingImages.length + actualIndex) return;
     
-    // Add a class to the target to indicate it's a drop target
-    e.currentTarget.classList.add('drop-target');
-    
-    console.log(`Dragging new file from index ${draggedIndex} to index ${actualIndex}`);
+    console.log(`Dragging new file from index ${draggedIndex} to index ${existingImages.length + actualIndex}`);
     
     // Check if we're dragging from the new files section
     if (draggedIndex >= existingImages.length) {
@@ -707,14 +788,20 @@ export const ImageManager = ({
         
         // Update the new files
         setNewFiles(newFilesList);
+        
+        // If we're in reorder mode, also mark the order as changed
+        if (isReorderMode) {
+          setPendingOrderChange(true);
+          console.log('New files reordered, order change pending...');
+        }
+        
         console.log('New files reordered:', newFilesList);
       } else {
         console.error('Dragged new file is undefined, cannot reorder');
       }
     } else {
-      // We're dragging from existing images to new files
-      // This is a more complex case that would require merging the arrays
-      console.log('Dragging between different sections is not supported');
+      // We're dragging from the existing images section to the new files section
+      console.log('Dragging from existing images to new files is not supported');
     }
   };
   
