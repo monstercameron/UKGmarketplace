@@ -193,12 +193,17 @@ export const CategorySelectionSection = ({
     const iconKey = getIconKey(name);
     const svg = categoryIcons[iconKey];
     
+    const handleCategorySelect = () => {
+      console.log('Category selected:', { id, name, idType: typeof id });
+      onCategorySelect(id.toString());
+    };
+    
     return html`
       <div className="relative">
         <button
           key=${id}
           type="button"
-          onClick=${() => onCategorySelect(id.toString())}
+          onClick=${handleCategorySelect}
           onMouseEnter=${() => setShowPopover(true)}
           onMouseLeave=${() => setShowPopover(false)}
           className="flex items-center px-3 py-2 rounded-lg transition-all duration-300 w-full"

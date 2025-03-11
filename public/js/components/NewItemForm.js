@@ -15,7 +15,7 @@ export const NewItemForm = ({ darkMode, html }) => {
   const [price, setPrice] = React.useState('');
   const [condition, setCondition] = React.useState('new');
   const [location, setLocation] = React.useState('');
-  const [categoryId, setCategoryId] = React.useState('');
+  const [categoryId, setCategoryId] = React.useState(null);
   const [selectedPaymentMethods, setSelectedPaymentMethods] = React.useState({
     cash: true,
     apple_cash: false,
@@ -99,9 +99,17 @@ export const NewItemForm = ({ darkMode, html }) => {
     setLoading(true);
     setError(null);
 
+    console.log('Form submitted with categoryId:', categoryId, 'type:', typeof categoryId);
+
     // Validate form
-    if (!title || !description || !price || !condition || !location || !categoryId || !email) {
+    if (!title || !description || !price || !condition || !location || !email) {
       setError('Please fill in all required fields');
+      setLoading(false);
+      return;
+    }
+    
+    if (!categoryId) {
+      setError('Please select a category for your item');
       setLoading(false);
       return;
     }
@@ -111,6 +119,8 @@ export const NewItemForm = ({ darkMode, html }) => {
       .filter(([_, selected]) => selected)
       .map(([method]) => method);
 
+    console.log('Payment methods array:', paymentMethodsArray);
+      
     if (paymentMethodsArray.length === 0) {
       setError('Please select at least one payment method');
       setLoading(false);
@@ -129,25 +139,43 @@ export const NewItemForm = ({ darkMode, html }) => {
     }
 
     try {
+      // Ensure categoryId is a valid integer
+      const parsedCategoryId = parseInt(categoryId, 10);
+      console.log('Parsed categoryId:', parsedCategoryId, 'valid:', !isNaN(parsedCategoryId));
+      
+      if (isNaN(parsedCategoryId)) {
+        setError('Invalid category selected. Please select a valid category.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Sending API request with categoryId:', parsedCategoryId);
+      
+      // DIRECT FIX: Create the exact format that will work
+      const requestBody = {
+        title,
+        description,
+        price: parseFloat(price),
+        condition,
+        location,
+        category_id: parsedCategoryId, // Use snake_case for backend compatibility
+        shipping: shippingOptionsArray,
+        negotiable,
+        email,
+        phone,
+        teamsLink,
+        paymentMethods: paymentMethodsArray 
+      };
+      
+      console.log('Request payload:', JSON.stringify(requestBody, null, 2));
+      
+      // IMPORTANT: Use the exact endpoint and format
       const response = await fetch('/api/v1/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          title,
-          description,
-          price: parseFloat(price),
-          condition,
-          location,
-          categoryId: parseInt(categoryId),
-          shipping: shippingOptionsArray,
-          negotiable,
-          email,
-          phone,
-          teamsLink,
-          paymentMethods: paymentMethodsArray
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -343,7 +371,7 @@ export const NewItemForm = ({ darkMode, html }) => {
     setPrice('');
     setCondition('new');
     setLocation('');
-    setCategoryId('');
+    setCategoryId(null);
     setSelectedPaymentMethods({
       cash: true,
       apple_cash: false,

@@ -351,6 +351,34 @@ router.delete('/:id', async (req, res) => {
     res.status(204).send();
 });
 
+/**
+ * @swagger
+ * /api/v1/categories/diagnose:
+ *   get:
+ *     summary: Diagnose category issues
+ *     tags: [Categories]
+ *     responses:
+ *       200:
+ *         description: Diagnosis results
+ *       500:
+ *         description: Server error
+ */
+router.get('/diagnose', async (req, res) => {
+    try {
+        const itemService = require('../../../services/itemService.js');
+        const [result, error] = await itemService.diagnoseCategoryIssues();
+        
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+        
+        res.json(result);
+    } catch (err) {
+        console.error('Error in GET /categories/diagnose:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Invalidate cache when categories are modified
 const invalidateCache = () => {
     categoriesCache = null;

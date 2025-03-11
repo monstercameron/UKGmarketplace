@@ -394,7 +394,8 @@ router.post('/', async (req, res) => {
     try {
         // Extract item details from request
         const { 
-            categoryId, 
+            categoryId,
+            category_id, // Also accept category_id format
             title, 
             description, 
             price, 
@@ -408,12 +409,28 @@ router.post('/', async (req, res) => {
             paymentMethods 
         } = req.body;
 
+        // Use either categoryId or category_id
+        const requestCategoryId = categoryId || category_id;
+
+        console.log('Received POST /api/v1/items request with:', {
+            categoryId: requestCategoryId,
+            title: title?.substring(0, 20) + '...',
+            categoryIdType: typeof requestCategoryId
+        });
+
         // Basic validation
-        if (!title || !description || !price || !condition || !location || !categoryId || !email) {
+        if (!title || !description || !price || !condition || !location || !email) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
+        
+        // Parse and validate categoryId
+        const parsedCategoryId = parseInt(requestCategoryId, 10);
+        if (isNaN(parsedCategoryId)) {
+            console.error('Invalid categoryId:', requestCategoryId);
+            return res.status(400).json({ error: 'Invalid category ID' });
+        }
 
-        const [result, error] = await itemService.createItem(categoryId, { 
+        const [result, error] = await itemService.createItem(parsedCategoryId, { 
             title, 
             description, 
             price, 
@@ -966,6 +983,51 @@ router.patch('/:id', async (req, res) => {
         res.json(result);
     } catch (err) {
         console.error('Error in PATCH /items/:id:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/v1/items/force-fix/{id}:
+ *   get:
+ *     summary: Force fix properties of a specific item
+ *     tags: [Items]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Item ID to fix
+ *     responses:
+ *       200:
+ *         description: Item fixed successfully
+ *       404:
+ *         description: Item not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/force-fix/:id', async (req, res) => {
+    try {
+        const itemId = parseInt(req.params.id, 10);
+        
+        if (isNaN(itemId)) {
+            return res.status(400).json({ error: 'Invalid item ID' });
+        }
+        
+        console.log(`Applying direct fix to item ${itemId}`);
+        
+        const [result, error] = await itemService.forceFixItemProperties(itemId);
+        
+        if (error) {
+            console.error('Error fixing item:', error);
+            return res.status(error.status || 500).json({ error: error.message || 'Failed to fix item' });
+        }
+        
+        res.json(result);
+    } catch (err) {
+        console.error('Error in GET /items/force-fix/:id:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
