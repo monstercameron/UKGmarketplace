@@ -13,108 +13,103 @@ export const CategorySelectionSection = ({
   const standardCategories = [
     { 
       id: 1, 
-      name: 'Electronics', 
-      description: 'Consumer electronics and gadgets. Examples: TVs, cameras, speakers, headphones, smart home devices, gaming consoles, drones, and other electronic accessories.'
+      name: 'Electronics & Computers', 
+      description: 'Electronics, computers, and tech items including laptops, desktops, TVs, cameras, smart home devices, audio equipment, and accessories'
     },
     { 
       id: 2, 
-      name: 'Computers', 
-      description: 'Computing devices and accessories. Examples: laptops, desktops, monitors, keyboards, mice, webcams, hard drives, and computer components.'
+      name: 'Mobile Phones', 
+      description: 'Smartphones, cell phones, and phone accessories including cases, chargers, and screen protectors'
     },
     { 
       id: 3, 
-      name: 'Mobile Phones', 
-      description: 'Phones and phone accessories. Examples: smartphones (iPhone, Android), cases, chargers, screen protectors, power banks, and phone stands.'
+      name: 'Gaming & Consoles', 
+      description: 'Video games, consoles, gaming accessories, and related equipment'
     },
     { 
       id: 4, 
-      name: 'Home & Kitchen', 
-      description: 'Kitchen appliances and home essentials. Examples: microwaves, coffee makers, blenders, pots, pans, utensils, dish sets, and small appliances.'
+      name: 'Furniture', 
+      description: 'Indoor and outdoor furniture including desks, chairs, tables, beds, shelves, and patio furniture'
     },
     { 
       id: 5, 
-      name: 'Furniture', 
-      description: 'Indoor and outdoor furniture. Examples: desks, chairs, sofas, beds, tables, shelves, dressers, and patio furniture. Both new and gently used welcome.'
+      name: 'Home & Kitchen Appliances', 
+      description: 'Kitchen and household appliances including microwaves, blenders, coffee makers, refrigerators, and washing machines'
     },
     { 
       id: 6, 
-      name: 'Clothing', 
-      description: 'All types of apparel and accessories. Examples: shirts, pants, dresses, shoes, jackets, bags, hats, and fashion accessories. Please note size and condition.'
+      name: 'Home Decor & Improvement', 
+      description: 'Home decorative items, tools, hardware, and improvement supplies'
     },
     { 
       id: 7, 
-      name: 'Books & Media', 
-      description: 'Educational and entertainment media. Examples: textbooks, novels, study guides, DVDs, video games, vinyl records, and academic materials. Include ISBN when possible.'
+      name: 'Housing & Real Estate', 
+      description: 'Properties for sale or rent including apartments, houses, condos, rooms for rent, and commercial properties'
     },
     { 
       id: 8, 
-      name: 'Sports & Outdoors', 
-      description: 'Athletic and outdoor equipment. Examples: bikes, exercise equipment, sports gear, camping gear, hiking equipment, skateboards, and fitness accessories.'
+      name: 'Vehicles & Automotive', 
+      description: 'Cars, trucks, motorcycles, parts, accessories, and other automotive items'
     },
     { 
       id: 9, 
-      name: 'Toys & Games', 
-      description: 'Games and recreational items. Examples: board games, card games, puzzles, video games and consoles, collectible toys, and hobby items.'
+      name: 'Bicycles', 
+      description: 'Bicycles, cycling gear, and related accessories'
     },
     { 
       id: 10, 
-      name: 'Automotive', 
-      description: 'Vehicle parts and accessories. Examples: car parts, bike accessories, maintenance tools, car electronics, cleaning supplies, and automotive equipment.'
+      name: 'Clothing & Shoes', 
+      description: 'All types of apparel including shirts, pants, dresses, outerwear, shoes, and fashion accessories'
     },
     { 
       id: 11, 
-      name: 'Health & Beauty', 
-      description: 'Personal care and wellness items. Examples: skincare products, cosmetics, hair care, fitness equipment, wellness products. Unopened items only for personal care.'
+      name: 'Jewelry & Accessories', 
+      description: 'Jewelry, watches, handbags, purses, backpacks, and personal accessories'
     },
     { 
       id: 12, 
-      name: 'Jewelry', 
-      description: 'Jewelry and accessories. Examples: necklaces, rings, earrings, watches, bracelets, and other accessories. Please include details about materials and authenticity.'
+      name: 'Health & Beauty', 
+      description: 'Personal care items, beauty products, fitness equipment, and wellness items'
     },
     { 
       id: 13, 
-      name: 'Art & Collectibles', 
-      description: 'Unique and collectible items. Examples: artwork, prints, sculptures, antiques, trading cards, stamps, coins, and memorabilia. Include authenticity info if available.'
+      name: 'Books & Media', 
+      description: 'Books, textbooks, magazines, movies, music, and educational materials'
     },
     { 
       id: 14, 
       name: 'Musical Instruments', 
-      description: 'Instruments and music gear. Examples: guitars, keyboards, drums, microphones, amplifiers, music accessories, and sheet music. Include condition details.'
+      description: 'Instruments and music gear including guitars, keyboards, percussion, and accessories'
     },
     { 
       id: 15, 
-      name: 'Office Supplies', 
-      description: 'Work and study supplies. Examples: notebooks, pens, desk organizers, calculators, printer supplies, planners, and office furniture.'
+      name: 'Sports & Outdoor Gear', 
+      description: 'Athletic equipment, outdoor recreation gear, camping supplies, and fitness accessories'
     },
     { 
       id: 16, 
-      name: 'Pet Supplies', 
-      description: 'Items for pets. Examples: food bowls, beds, carriers, toys, grooming supplies, and accessories. Unopened food/treats only.'
+      name: 'Toys, Games & Hobbies', 
+      description: 'Toys, board games, puzzles, collectibles, and hobby supplies'
     },
     { 
       id: 17, 
-      name: 'Home Improvement', 
-      description: 'Tools and home repair items. Examples: power tools, hand tools, hardware, paint supplies, lighting fixtures, and home maintenance equipment.'
+      name: 'Art & Collectibles', 
+      description: 'Artwork, antiques, collectibles, memorabilia, and unique items'
     },
     { 
       id: 18, 
-      name: 'Garden & Outdoor', 
-      description: 'Gardening and outdoor items. Examples: plants, pots, gardening tools, outdoor furniture, grills, lawn care equipment, and landscaping supplies.'
+      name: 'Baby & Kids Items', 
+      description: 'Products for babies, children, and parents including strollers, toys, clothing, and accessories'
     },
     { 
       id: 19, 
-      name: 'Baby & Kids', 
-      description: 'Items for babies, children, and parents. Examples: strollers, car seats, toys, children\'s clothing, baby monitors, and educational materials for kids.'
+      name: 'Pet Supplies', 
+      description: 'Items for pets including food bowls, beds, carriers, toys, and accessories'
     },
     { 
       id: 20, 
       name: 'Other', 
-      description: 'Items that don\'t fit into other categories. Please provide a detailed description of your item.'
-    },
-    { 
-      id: 21, 
-      name: 'Housing', 
-      description: 'Properties for sale or rent. Examples: apartments, houses, condos, rooms for rent, vacation rentals, and commercial properties. Include location, size, and amenities.'
+      description: 'Items that don\'t fit into other categories'
     }
   ];
   
@@ -127,17 +122,25 @@ export const CategorySelectionSection = ({
 
     // Mapping dictionary for common variations.
     const categoryMappings = {
-      'computers & laptops': 'Computers',
+      'computers & laptops': 'Electronics & Computers',
+      'electronics': 'Electronics & Computers',
+      'computers': 'Electronics & Computers',
       'smartphones': 'Mobile Phones',
-      'tvs & monitors': 'Electronics',
-      'audio equipment': 'Electronics',
-      'gaming': 'Toys & Games',
-      'home appliances': 'Home & Kitchen',
-      'housing rentals': 'Home Improvement',
-      'cars & trucks': 'Automotive',
-      'clothing & apparel': 'Clothing',
+      'tvs & monitors': 'Electronics & Computers',
+      'audio equipment': 'Electronics & Computers',
+      'gaming': 'Gaming & Consoles',
+      'home appliances': 'Home & Kitchen Appliances',
+      'housing rentals': 'Housing & Real Estate',
+      'housing': 'Housing & Real Estate',
+      'real estate': 'Housing & Real Estate',
+      'cars & trucks': 'Vehicles & Automotive',
+      'automotive': 'Vehicles & Automotive',
+      'clothing & apparel': 'Clothing & Shoes',
+      'clothing': 'Clothing & Shoes',
       'books & magazines': 'Books & Media',
-      'sports equipment': 'Sports & Outdoors'
+      'sports equipment': 'Sports & Outdoor Gear',
+      'sports & outdoors': 'Sports & Outdoor Gear',
+      'toys & games': 'Toys, Games & Hobbies'
     };
     if(categoryMappings[lowerCatName]) {
       match = standardCategories.find(sc => sc.name.toLowerCase() === categoryMappings[lowerCatName].toLowerCase());

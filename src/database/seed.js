@@ -3,15 +3,23 @@
  */
 
 import { db, runAsync, allAsync, generateManagementKey, tablesInitialized } from './schema.js';
+import { initializeDatabase } from './init-db.js';
 import { handle } from '../utils/result.js';
 import bcrypt from 'bcrypt';
 
 const SALT_ROUNDS = 10;
 
-export async function seed() {
+/**
+ * Seed the database with example/demo data
+ * This function assumes the database has already been initialized with essential records
+ */
+export async function seedExampleData() {
     try {
         // Wait for tables to be initialized
         await tablesInitialized;
+        
+        // Ensure essential records are in place
+        await initializeDatabase();
         
         // Categories - Extensive list with main categories and subcategories
         const categories = [
@@ -91,24 +99,6 @@ export async function seed() {
             await runAsync(
                 'INSERT OR IGNORE INTO users (username, email, password_hash, location) VALUES (?, ?, ?, ?)',
                 [user.username, user.email, passwordHash, user.location]
-            );
-        }
-
-        // Payment Methods
-        const paymentMethods = [
-            { name: 'Cash', slug: 'cash', description: 'Cash on delivery' },
-            { name: 'PayPal', slug: 'paypal', description: 'PayPal payment' },
-            { name: 'Venmo', slug: 'venmo', description: 'Venmo payment' },
-            { name: 'Zelle', slug: 'zelle', description: 'Zelle payment' },
-            { name: 'Apple Cash', slug: 'apple_cash', description: 'Apple Cash payment' },
-            { name: 'Cash App', slug: 'cash_app', description: 'Cash App payment' },
-            { name: 'Other', slug: 'other', description: 'Other payment methods' }
-        ];
-
-        for (const method of paymentMethods) {
-            await runAsync(
-                'INSERT OR IGNORE INTO payment_methods (name, slug, description) VALUES (?, ?, ?)',
-                [method.name, method.slug, method.description]
             );
         }
 
@@ -319,16 +309,19 @@ export async function seed() {
             );
         }
 
-        console.log('Database seeded successfully!');
+        console.log('Database seeded with example data successfully!');
     } catch (error) {
-        console.error('Error seeding database:', error);
+        console.error('Error seeding database with example data:', error);
         throw error;
     }
 }
 
+// Maintain backwards compatibility
+export const seed = seedExampleData;
+
 // Run the seed function if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-    seed().then(() => {
+    seedExampleData().then(() => {
         console.log('Seeding complete');
         process.exit(0);
     }).catch(error => {

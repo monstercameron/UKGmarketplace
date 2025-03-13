@@ -72,17 +72,31 @@ npm install
 # Configure your environment
 cp .env.example .env
 
-# Initialize the database (required)
-npm run db:init
+# Setup the database (initializes schema and essential data)
+npm run db:setup
 
-# Seed the database with sample data (optional)
+# Seed the database with example data (optional)
 npm run db:seed
 
-# Start the development server with live CSS building
-npm run dev:full
+# Start the development server with hot-reloading
+npm run dev
 ```
 
 The server will be available at `http://localhost:3001` (or your configured PORT).
+
+## 📋 Available Scripts
+
+Here are the main scripts available in this project:
+
+- `npm start` - Start the production server
+- `npm run dev` - Start development server with CSS watching
+- `npm run build` - Build the project for production
+- `npm run lint` - Lint and fix code issues
+- `npm run format` - Format code using Prettier
+- `npm run css` - Build minified CSS
+- `npm run db:setup` - Initialize database schema and essential data
+- `npm run db:seed` - Add example data to the database
+- `npm run db:reset` - Reset the database
 
 ## 🧰 Tech Stack
 

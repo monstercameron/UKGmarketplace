@@ -60,18 +60,26 @@ export const NewItemForm = ({ darkMode, html }) => {
       console.error('Error fetching categories:', err);
       // Use default categories as fallback
       setCategories([
-        { id: 1, name: 'Computers & Laptops' },
-        { id: 2, name: 'Smartphones' },
-        { id: 3, name: 'TVs & Monitors' },
-        { id: 4, name: 'Audio Equipment' },
-        { id: 5, name: 'Gaming' },
-        { id: 6, name: 'Furniture' },
-        { id: 7, name: 'Home Appliances' },
-        { id: 8, name: 'Housing Rentals' },
-        { id: 9, name: 'Cars & Trucks' },
-        { id: 10, name: 'Clothing & Apparel' },
-        { id: 11, name: 'Books & Magazines' },
-        { id: 12, name: 'Other' }
+        { id: 1, name: 'Electronics & Computers' },
+        { id: 2, name: 'Mobile Phones' },
+        { id: 3, name: 'Gaming & Consoles' },
+        { id: 4, name: 'Furniture' },
+        { id: 5, name: 'Home & Kitchen Appliances' },
+        { id: 6, name: 'Home Decor & Improvement' },
+        { id: 7, name: 'Housing & Real Estate' },
+        { id: 8, name: 'Vehicles & Automotive' },
+        { id: 9, name: 'Bicycles' },
+        { id: 10, name: 'Clothing & Shoes' },
+        { id: 11, name: 'Jewelry & Accessories' },
+        { id: 12, name: 'Health & Beauty' },
+        { id: 13, name: 'Books & Media' },
+        { id: 14, name: 'Musical Instruments' },
+        { id: 15, name: 'Sports & Outdoor Gear' },
+        { id: 16, name: 'Toys, Games & Hobbies' },
+        { id: 17, name: 'Art & Collectibles' },
+        { id: 18, name: 'Baby & Kids Items' },
+        { id: 19, name: 'Pet Supplies' },
+        { id: 20, name: 'Other' }
       ]);
     }
   };

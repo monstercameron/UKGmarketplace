@@ -9,48 +9,67 @@ const API_TIMEOUT = 10000; // Reduced to 10 seconds for faster feedback
 
 // Standard categories - exactly matching the 20 categories in CategorySelectionSection.js
 const STANDARD_CATEGORIES = [
-  { id: 1, name: 'Electronics', slug: 'electronics' },
-  { id: 2, name: 'Computers', slug: 'computers' },
-  { id: 3, name: 'Mobile Phones', slug: 'mobile-phones' },
-  { id: 4, name: 'Home & Kitchen', slug: 'home-kitchen' },
-  { id: 5, name: 'Furniture', slug: 'furniture' },
-  { id: 6, name: 'Clothing', slug: 'clothing' },
-  { id: 7, name: 'Books & Media', slug: 'books-media' },
-  { id: 8, name: 'Sports & Outdoors', slug: 'sports-outdoors' },
-  { id: 9, name: 'Toys & Games', slug: 'toys-games' },
-  { id: 10, name: 'Automotive', slug: 'automotive' },
-  { id: 11, name: 'Health & Beauty', slug: 'health-beauty' },
-  { id: 12, name: 'Jewelry', slug: 'jewelry' },
-  { id: 13, name: 'Art & Collectibles', slug: 'art-collectibles' },
+  { id: 1, name: 'Electronics & Computers', slug: 'electronics-computers' },
+  { id: 2, name: 'Mobile Phones', slug: 'mobile-phones' },
+  { id: 3, name: 'Gaming & Consoles', slug: 'gaming' },
+  { id: 4, name: 'Furniture', slug: 'furniture' },
+  { id: 5, name: 'Home & Kitchen Appliances', slug: 'home-appliances' },
+  { id: 6, name: 'Home Decor & Improvement', slug: 'home-decor-improvement' },
+  { id: 7, name: 'Housing & Real Estate', slug: 'housing-real-estate' },
+  { id: 8, name: 'Vehicles & Automotive', slug: 'vehicles-automotive' },
+  { id: 9, name: 'Bicycles', slug: 'bicycles' },
+  { id: 10, name: 'Clothing & Shoes', slug: 'clothing-shoes' },
+  { id: 11, name: 'Jewelry & Accessories', slug: 'jewelry-accessories' },
+  { id: 12, name: 'Health & Beauty', slug: 'health-beauty' },
+  { id: 13, name: 'Books & Media', slug: 'books-media' },
   { id: 14, name: 'Musical Instruments', slug: 'musical-instruments' },
-  { id: 15, name: 'Office Supplies', slug: 'office-supplies' },
-  { id: 16, name: 'Pet Supplies', slug: 'pet-supplies' },
-  { id: 17, name: 'Home Improvement', slug: 'home-improvement' },
-  { id: 18, name: 'Garden & Outdoor', slug: 'garden-outdoor' },
-  { id: 19, name: 'Baby & Kids', slug: 'baby-kids' },
-  { id: 20, name: 'Other', slug: 'other' },
-  { id: 21, name: 'Housing', slug: 'housing' }
+  { id: 15, name: 'Sports & Outdoor Gear', slug: 'sports-outdoors' },
+  { id: 16, name: 'Toys, Games & Hobbies', slug: 'toys-games-hobbies' },
+  { id: 17, name: 'Art & Collectibles', slug: 'art-collectibles' },
+  { id: 18, name: 'Baby & Kids Items', slug: 'baby-kids' },
+  { id: 19, name: 'Pet Supplies', slug: 'pet-supplies' },
+  { id: 20, name: 'Other', slug: 'other' }
 ];
 
 // Category name mappings for legacy/alternative names
 const CATEGORY_NAME_MAPPINGS = {
-  'computers & laptops': 'Computers',
+  'computers & laptops': 'Electronics & Computers',
+  'electronics': 'Electronics & Computers',
+  'computers': 'Electronics & Computers',
   'smartphones': 'Mobile Phones',
-  'tvs & monitors': 'Electronics',
-  'audio equipment': 'Electronics',
-  'gaming': 'Toys & Games',
-  'home appliances': 'Home & Kitchen',
-  'housing rentals': 'Housing',
-  'real estate': 'Housing',
-  'apartments': 'Housing',
-  'rental properties': 'Housing',
-  'houses for sale': 'Housing',
-  'houses for rent': 'Housing',
-  'cars & trucks': 'Automotive',
-  'clothing & apparel': 'Clothing',
+  'tvs & monitors': 'Electronics & Computers',
+  'audio equipment': 'Electronics & Computers',
+  'gaming': 'Gaming & Consoles',
+  'home appliances': 'Home & Kitchen Appliances',
+  'home & kitchen': 'Home & Kitchen Appliances',
+  'kitchen & dining': 'Home & Kitchen Appliances',
+  'home improvement': 'Home Decor & Improvement',
+  'garden & outdoor': 'Home Decor & Improvement',
+  'housing rentals': 'Housing & Real Estate',
+  'housing': 'Housing & Real Estate',
+  'real estate': 'Housing & Real Estate',
+  'apartments': 'Housing & Real Estate',
+  'rental properties': 'Housing & Real Estate',
+  'houses for sale': 'Housing & Real Estate',
+  'houses for rent': 'Housing & Real Estate',
+  'cars & trucks': 'Vehicles & Automotive',
+  'automotive': 'Vehicles & Automotive',
+  'clothing & apparel': 'Clothing & Shoes',
+  'clothing': 'Clothing & Shoes',
+  'shoes': 'Clothing & Shoes',
+  'jewelry': 'Jewelry & Accessories',
+  'jewelry & watches': 'Jewelry & Accessories',
+  'bags & luggage': 'Jewelry & Accessories',
   'books & magazines': 'Books & Media',
-  'sports equipment': 'Sports & Outdoors',
-  'event tickets': 'Art & Collectibles'
+  'sports equipment': 'Sports & Outdoor Gear',
+  'sports & outdoors': 'Sports & Outdoor Gear',
+  'outdoor recreation': 'Sports & Outdoor Gear',
+  'fitness & exercise': 'Sports & Outdoor Gear',
+  'toys & games': 'Toys, Games & Hobbies',
+  'collectibles': 'Art & Collectibles',
+  'arts & crafts': 'Art & Collectibles',
+  'event tickets': 'Other',
+  'baby & kids': 'Baby & Kids Items'
 };
 
 export const CategoryDropdown = ({ darkMode, onSelectCategory, html }) => {
@@ -63,14 +82,14 @@ export const CategoryDropdown = ({ darkMode, onSelectCategory, html }) => {
 
   // Define the primary categories to always show (most common/important ones)
   const PRIMARY_CATEGORIES = [
-    'Electronics', 
-    'Computers', 
+    'Electronics & Computers', 
     'Mobile Phones', 
+    'Housing & Real Estate', 
     'Furniture', 
-    'Clothing', 
+    'Clothing & Shoes', 
     'Books & Media',
-    'Toys & Games',
-    'Automotive'
+    'Vehicles & Automotive',
+    'Toys, Games & Hobbies'
   ];
 
   const fetchWithTimeout = async (url, options = {}) => {

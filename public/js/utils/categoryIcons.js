@@ -65,11 +65,32 @@ export const categoryIcons = {
 
 // Category name to icon key mapping
 export const categoryToIconKey = {
+  // Primary category mappings
+  'Electronics & Computers': 'electronics',
+  'Mobile Phones': 'mobilePhones',
+  'Gaming & Consoles': 'toysGames',
+  'Furniture': 'furniture',
+  'Home & Kitchen Appliances': 'homeKitchen',
+  'Home Decor & Improvement': 'homeImprovement',
+  'Housing & Real Estate': 'housing',
+  'Vehicles & Automotive': 'automotive',
+  'Bicycles': 'bicycles',
+  'Clothing & Shoes': 'clothing',
+  'Jewelry & Accessories': 'jewelry',
+  'Health & Beauty': 'healthBeauty',
+  'Books & Media': 'booksMedia',
+  'Musical Instruments': 'musicalInstruments',
+  'Sports & Outdoor Gear': 'sportsOutdoors',
+  'Toys, Games & Hobbies': 'toysGames',
+  'Art & Collectibles': 'artCollectibles',
+  'Baby & Kids Items': 'babyKids',
+  'Pet Supplies': 'petSupplies',
+  'Other': 'other',
+
+  // Legacy mappings for backward compatibility
   'Electronics': 'electronics',
   'Computers': 'computers',
-  'Mobile Phones': 'mobilePhones',
   'Home & Kitchen': 'homeKitchen',
-  'Furniture': 'furniture',
   'Clothing': 'clothing',
   'Books & Media': 'booksMedia',
   'Sports & Outdoors': 'sportsOutdoors',
@@ -85,7 +106,6 @@ export const categoryToIconKey = {
   'Garden & Outdoor': 'gardenOutdoor',
   'Baby & Kids': 'babyKids',
   'Housing': 'housing',
-  'Other': 'other',
 
   // Additional category mappings
   'Arts & Crafts': 'artsCrafts',
