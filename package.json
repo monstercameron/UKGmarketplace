@@ -25,6 +25,7 @@
     "build:css": "tailwindcss -i ./src/css/input.css -o ./public/css/output.css --minify --config ./config/tailwind.config.js",
     "watch:css": "tailwindcss -i ./src/css/input.css -o ./public/css/output.css --watch --config ./config/tailwind.config.js",
     "compress:static": "node scripts/compress-static.js",
+    "test:compress": "node scripts/test-compress.js",
     "build": "npm run build:css && npm run compress:static",
     "dev:full": "concurrently \"cross-env NODE_ENV=development nodemon server.js\" \"npm run watch:css\"",
     "db:init": "node src/database/schema.js",
@@ -36,7 +37,9 @@
     "db:reset-force": "node scripts/reset-db-force.js",
     "cache-cdn": "node scripts/cache-cdn.js",
     "download-material-icon-font": "node scripts/download-material-icon-font.js",
-    "download-all-cdn": "npm run cache-cdn && npm run download-material-icon-font"
+    "download-all-cdn": "npm run cache-cdn && npm run download-material-icon-font",
+    "setup": "node scripts/setup.js",
+    "setup:quick": "node scripts/setup.js --quick"
   },
   "keywords": [
     "UKG",
