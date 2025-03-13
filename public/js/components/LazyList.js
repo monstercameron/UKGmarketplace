@@ -1133,7 +1133,7 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
                 style=${{ color: darkMode ? WHITE : DARK_TEAL }}
               >
                 <span className="material-icons text-sm">insights</span>
-                Marketplace Metrics
+                Classifieds Metrics
               </h3>
               
               <div className="grid grid-cols-2 gap-3">

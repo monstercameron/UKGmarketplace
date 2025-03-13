@@ -851,7 +851,7 @@ export const ImageManager = ({
       `}
       
       <div 
-        className="border-2 border-dashed rounded-lg transition-all duration-200"
+        className="border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer"
         style=${{
           borderColor: darkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 48, 135, 0.3)',
           borderOpacity: hasImages || hasNewFiles ? '1' : '0.5',
