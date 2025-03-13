@@ -1,6 +1,6 @@
 /**
  * @fileoverview Rule to enforce the use of logger module in server files
- * @author UKG Marketplace Team
+ * @author UKG Classifieds Team
  */
 
 export const requireLogger = {

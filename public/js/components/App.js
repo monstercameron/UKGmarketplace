@@ -570,7 +570,7 @@ export const App = ({ html }) => {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white bg-opacity-20 backdrop-blur-sm">
                   <span className="material-icons text-2xl">storefront</span>
                 </div>
-                <h1 className="text-xl font-bold tracking-tight">UKG Market Place</h1>
+                <h1 className="text-xl font-bold tracking-tight">UKG Classifieds</h1>
               </a>
             </div>
 

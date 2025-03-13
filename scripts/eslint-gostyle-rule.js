@@ -1,6 +1,6 @@
 /**
  * @fileoverview ESLint rule to enforce Go-style error handling pattern
- * @author UKG Marketplace Team
+ * @author UKG Classifieds Team
  */
 
 /**

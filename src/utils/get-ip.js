@@ -12,7 +12,7 @@ dotenv.config();
 const localIp = getLocalIp();
 const port = process.env.PORT || 3001;
 
-console.log('\n=== UKG Marketplace IP Configuration Helper ===\n');
+console.log('\n=== UKG Classifieds IP Configuration Helper ===\n');
 console.log(`Local network IP: ${localIp || 'Not found'}`);
 console.log(`Current PORT: ${port}`);
 console.log(`\nRecommended HOST_URL setting for .env file:`);

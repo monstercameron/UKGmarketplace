@@ -7,7 +7,7 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'UKG Marketplace API',
+            title: 'UKG Classifieds API',
             version: process.env.API_VERSION || 'v1',
             description: 'A comprehensive marketplace API for managing items, categories, and user communications',
             contact: {

@@ -1,7 +1,7 @@
 {
   "name": "ukg-marketplace",
   "version": "1.0.0",
-  "description": "UKG Marketplace with cached CDN resources",
+  "description": "UKG Classifieds with cached CDN resources",
   "type": "module",
   "main": "server.js",
   "scripts": {

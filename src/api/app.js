@@ -154,7 +154,7 @@ if (process.env.SWAGGER_ENABLED === 'true') {
         swaggerUi.setup(swaggerSpec, {
             explorer: true,
             customCss: '.swagger-ui .topbar { display: none }',
-            customSiteTitle: 'UKG Marketplace API Documentation'
+            customSiteTitle: 'UKG Classifieds API Documentation'
         })
     );
     logger.info('Swagger documentation enabled', { path: swaggerPath });

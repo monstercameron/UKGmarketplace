@@ -1,10 +1,9 @@
-import { DARK_TEAL, LIGHT_TEAL, WHITE, DARK_BG, PAYMENT_METHODS, SHIPPING_OPTIONS } from '../utils/constants.js';
+import { DARK_TEAL, LIGHT_TEAL, WHITE } from '../utils/constants.js';
 import { Toast } from './Toast.js';
 import { ImageManager } from './form/ImageManager.js';
 import { FormField } from './form/FormField.js';
 import { PaymentMethodsSection } from './form/PaymentMethodsSection.js';
 import { ShippingOptionsSection } from './form/ShippingOptionsSection.js';
-import { SuccessScreen } from './form/SuccessScreen.js';
 import { CategorySelectionSection } from './form/CategorySelectionSection.js';
 import { ConditionSelectionSection } from './form/ConditionSelectionSection.js';
 

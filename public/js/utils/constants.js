@@ -11,9 +11,12 @@ export const GUIDELINES_HIDE_KEY = 'guidelines_hidden_until';
 // Payment method icons (using Material Icons)
 export const PAYMENT_METHODS = {
   cash: { icon: 'payments', label: 'Cash' },
+  apple_cash: { icon: 'phone_iphone', label: 'Apple Cash' },
+  cash_app: { icon: 'attach_money', label: 'Cash App' },
+  zelle: { icon: 'swap_horiz', label: 'Zelle' },
   venmo: { icon: 'account_balance', label: 'Venmo' },
   paypal: { icon: 'payment', label: 'PayPal' },
-  zelle: { icon: 'swap_horiz', label: 'Zelle' }
+  other: { icon: 'more_horiz', label: 'Other' }
 };
 
 export const DEFAULT_ITEM_IMAGE = 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1452&q=80';

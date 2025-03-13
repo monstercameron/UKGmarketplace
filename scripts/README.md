@@ -1,6 +1,6 @@
-# UKG Marketplace Scripts
+# UKG Classifieds Scripts
 
-This directory contains utility scripts for the UKG Marketplace application.
+This directory contains utility scripts for the UKG Classifieds application.
 
 ## Available Scripts
 

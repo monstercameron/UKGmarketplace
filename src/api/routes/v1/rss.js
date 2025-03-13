@@ -316,16 +316,16 @@ function generateRssXml(items, siteUrl) {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>UKG Marketplace - Latest Items</title>
+    <title>UKG Classifieds - Latest Items</title>
     <link>${escapeXml(siteUrl)}</link>
-    <description>The latest items available on the UKG Marketplace</description>
+    <description>The latest items available on the UKG Classifieds</description>
     <language>en-us</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <ttl>60</ttl>
     <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />
     <image>
       <url>${escapeXml(siteUrl)}/image/logo.png</url>
-      <title>UKG Marketplace</title>
+      <title>UKG Classifieds</title>
       <link>${escapeXml(siteUrl)}</link>
     </image>
 `;

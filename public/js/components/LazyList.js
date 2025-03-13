@@ -1029,7 +1029,7 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
                 color: darkMode ? LIGHT_TEAL : DARK_TEAL
               }}
             >
-              Welcome to UKG Marketplace
+              Welcome to UKG Classifieds
             </div>
             <p className="mb-2">
               This platform runs on the <strong>honor system</strong> and is built on trust within our community.
@@ -1201,7 +1201,7 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
             Community Guidelines
           </h3>
           <p className="mb-3">
-            Welcome to the UKG Marketplace! This platform runs on the <strong>honor system</strong> and is built on trust within our community.
+            Welcome to the UKG Classifieds! This platform runs on the <strong>honor system</strong> and is built on trust within our community.
           </p>
           <ul className="list-disc pl-6 mb-3">
             <li className="mb-2">Be respectful and honest with your fellow coworkers</li>
@@ -1223,7 +1223,7 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
               fontWeight: 'bold'
             }}
           >
-            UKG Marketplace
+            UKG Classifieds
           </div>
           <div 
             className="text-sm mb-3"

@@ -1,4 +1,4 @@
-# 🛍️ UKG Marketplace
+# 🛍️ UKG Classifieds
 
 **Missing the centralized marketplace chat from Slack? We've got you covered!**
 
@@ -6,7 +6,7 @@
 
 Remember when finding that standing desk, selling your old monitor, or swapping office supplies was as easy as posting in the Slack marketplace channel? Those were the days! Since we've moved away from that centralized hub, things just haven't been the same.
 
-**That's why we built UKG Marketplace** - a simple, company-wide solution to bring back the convenience of having one place to buy, sell, and trade items with colleagues!
+**That's why we built UKG Classifieds** - a simple, company-wide solution to bring back the convenience of having one place to buy, sell, and trade items with colleagues!
 
 ## ✨ Features That'll Make Your Life Easier
 
@@ -30,7 +30,7 @@ All documentation lives in the `/docs` directory:
 
 ### 🔍 API Documentation (Swagger)
 
-The UKG Marketplace provides interactive API documentation using Swagger UI:
+The UKG Classifieds provides interactive API documentation using Swagger UI:
 
 - **Access URL**: `http://localhost:3001/api-docs` (when running locally)
 - **Features**:
@@ -46,7 +46,7 @@ To access Swagger documentation:
 
 ### 📰 RSS Feeds
 
-UKG Marketplace provides RSS feeds to stay updated with the latest marketplace items:
+UKG Classifieds provides RSS feeds to stay updated with the latest marketplace items:
 
 - **Main Feed**: `http://localhost:3001/api/v1/rss`
   - Contains the latest marketplace items
@@ -60,7 +60,7 @@ You can subscribe to these feeds using any RSS reader application to stay update
 
 ## 🚀 Getting Started
 
-Want to run UKG Marketplace locally? It's easy!
+Want to run UKG Classifieds locally? It's easy!
 
 ```bash
 # Clone the repository
@@ -123,5 +123,5 @@ Check out the project on GitHub: [https://github.com/monstercameron/UKGmarketpla
 </p>
 
 <p align="center">
-  <strong>UKG Marketplace</strong> - One place for all your workplace marketplace needs!
+  <strong>UKG Classifieds</strong> - One place for all your workplace marketplace needs!
 </p>

@@ -98,8 +98,11 @@ export async function seed() {
         const paymentMethods = [
             { name: 'Cash', slug: 'cash', description: 'Cash on delivery' },
             { name: 'PayPal', slug: 'paypal', description: 'PayPal payment' },
-            { name: 'Credit Card', slug: 'credit-card', description: 'Credit card payment' },
-            { name: 'Venmo', slug: 'venmo', description: 'Venmo payment' }
+            { name: 'Venmo', slug: 'venmo', description: 'Venmo payment' },
+            { name: 'Zelle', slug: 'zelle', description: 'Zelle payment' },
+            { name: 'Apple Cash', slug: 'apple_cash', description: 'Apple Cash payment' },
+            { name: 'Cash App', slug: 'cash_app', description: 'Cash App payment' },
+            { name: 'Other', slug: 'other', description: 'Other payment methods' }
         ];
 
         for (const method of paymentMethods) {
