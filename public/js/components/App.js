@@ -567,8 +567,8 @@ export const App = ({ html }) => {
                   color: WHITE
                 }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white bg-opacity-20 backdrop-blur-sm">
-                  <span className="material-icons text-2xl">storefront</span>
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <img src="/images/ukgclassifieds-logo.svg" alt="UKG Classifieds Logo" className="w-full h-full" />
                 </div>
                 <h1 className="text-xl font-bold tracking-tight">UKG Classifieds</h1>
               </a>

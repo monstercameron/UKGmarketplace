@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#3DA700"/>
+  
+  <!-- Marketplace Building -->
+  <path d="M128 176V384H384V176" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Roof -->
+  <path d="M96 176L256 96L416 176" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Columns -->
+  <path d="M184 176V384" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M256 176V384" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M328 176V384" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Tag -->
+  <circle cx="328" cy="240" r="40" fill="#10B981" stroke="white" stroke-width="8"/>
+  <path d="M316 240L324 248L340 232" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg> 
