@@ -29,6 +29,48 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/v1/items/metrics:
+ *   get:
+ *     summary: Get sales metrics
+ *     tags: [Items]
+ *     description: Retrieve metrics about sold items and total revenue 
+ *     responses:
+ *       200:
+ *         description: Metrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 soldCount:
+ *                   type: integer
+ *                   description: Number of sold items
+ *                 totalValue:
+ *                   type: number
+ *                   description: Total value of all sold items
+ *       500:
+ *         description: Server error
+ */
+router.get('/metrics', async (req, res) => {
+    try {
+        const [result, error] = await validateAsync(
+            itemService.getSalesMetrics(),
+            httpError(500, 'Failed to retrieve sales metrics')
+        );
+
+        if (error) {
+            return res.status(error.status).json(error);
+        }
+        
+        res.json(result);
+    } catch (err) {
+        console.error('Error in GET /items/metrics:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * @swagger
  * /api/v1/items:
  *   get:
  *     summary: Get all items with pagination

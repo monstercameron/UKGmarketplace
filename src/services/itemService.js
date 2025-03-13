@@ -1579,6 +1579,43 @@ export const countItemsBySearch = async (query) => {
 };
 
 /**
+ * Count sold items and calculate total cash value
+ * @async
+ * @returns {Promise<Result<Object>>} Result with count, total value or error
+ */
+export const getSalesMetrics = async () => {
+    try {
+        // Get count of sold items
+        const [countResult, countError] = await handle(getAsync(
+            'SELECT COUNT(*) as count FROM items WHERE sold = 1'
+        ));
+        
+        if (countError) {
+            console.error('Error counting sold items:', countError);
+            return Result(null, countError);
+        }
+        
+        // Get sum of prices for sold items
+        const [sumResult, sumError] = await handle(getAsync(
+            'SELECT SUM(price) as total FROM items WHERE sold = 1'
+        ));
+        
+        if (sumError) {
+            console.error('Error calculating total sales value:', sumError);
+            return Result(null, sumError);
+        }
+        
+        return Result({ 
+            soldCount: countResult.count,
+            totalValue: sumResult.total || 0
+        });
+    } catch (err) {
+        console.error('Unexpected error in getSalesMetrics:', err);
+        return Result(null, err);
+    }
+};
+
+/**
  * Get all items without pagination
  * @async
  * @returns {Promise<Result<Array<Object>>>} Result containing array of all items

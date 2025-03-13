@@ -20,6 +20,11 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
   const [showScrollTop, setShowScrollTop] = React.useState(false);
   const [showNote, setShowNote] = React.useState(true);
   
+  // Metrics state
+  const [metrics, setMetrics] = React.useState(null);
+  const [metricsLoading, setMetricsLoading] = React.useState(true);
+  const [showMetrics, setShowMetrics] = React.useState(true);
+  
   // Fullscreen image gallery state
   const [showFullscreenGallery, setShowFullscreenGallery] = React.useState(false);
   const [fullscreenItemId, setFullscreenItemId] = React.useState(null);
@@ -46,6 +51,29 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
     return () => {
       scrollPositionRef.current = window.scrollY;
     };
+  }, []);
+
+  // Fetch metrics on component mount
+  React.useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setMetricsLoading(true);
+        const response = await fetch('/api/v1/items/metrics');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch marketplace metrics');
+        }
+        
+        const data = await response.json();
+        setMetrics(data);
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+      } finally {
+        setMetricsLoading(false);
+      }
+    };
+    
+    fetchMetrics();
   }, []);
 
   // Restore scroll position when component mounts
@@ -948,12 +976,39 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
     if (noteDismissed === 'true') {
       setShowNote(false);
     }
+    
+    // Check if metrics panel was previously dismissed
+    const metricsDismissedTime = localStorage.getItem('ukgClassifieds_hideMetricsPanel');
+    if (metricsDismissedTime) {
+      // Check if the dismissal was less than 1 hour ago
+      const dismissedAt = parseInt(metricsDismissedTime, 10);
+      const now = Date.now();
+      const oneHourInMs = 60 * 60 * 1000; // 1 hour in milliseconds
+      
+      if (!isNaN(dismissedAt) && now - dismissedAt < oneHourInMs) {
+        // Still within the 1 hour window, keep it hidden
+        setShowMetrics(false);
+      } else {
+        // It's been more than 1 hour, remove the stored value and show metrics again
+        localStorage.removeItem('ukgClassifieds_hideMetricsPanel');
+        setShowMetrics(true);
+      }
+    }
   }, []);
+  
+  const handleDismissMetrics = () => {
+    setShowMetrics(false);
+    // Save the current timestamp to localStorage
+    try {
+      localStorage.setItem('ukgClassifieds_hideMetricsPanel', Date.now().toString());
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
+    }
+  };
 
   // Handle clear search
   const handleClearSearch = () => {
     setSearchQuery('');
-    window.dispatchEvent(new CustomEvent('search', { detail: { query: '' } }));
   };
 
   // Handle view all items
@@ -1037,6 +1092,82 @@ export const LazyList = ({ selectedCategory, onSelectCategory, darkMode, html, s
             <p>
               Please be respectful and honest with your fellow coworkers. Together, we can create a positive and valuable marketplace for everyone at UKG.
             </p>
+          </div>
+        `}
+        
+        ${showMetrics && !metricsLoading && metrics && html`
+          <div 
+            className="metrics-panel mb-4 rounded-lg p-3 relative overflow-hidden"
+            style=${{ 
+              backgroundColor: darkMode ? 'rgba(0, 48, 135, 0.3)' : 'rgba(61, 167, 0, 0.08)',
+              border: '1px solid ' + (darkMode ? 'rgba(61, 167, 0, 0.3)' : 'rgba(0, 48, 135, 0.2)'),
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              animation: 'fadeIn 0.5s ease-out'
+            }}
+          >
+            <div 
+              className="absolute top-0 left-0 w-full h-full"
+              style=${{ 
+                backgroundImage: `radial-gradient(circle at 10% 10%, ${darkMode ? 'rgba(61, 167, 0, 0.3)' : 'rgba(0, 48, 135, 0.1)'} 0%, transparent 70%)`,
+                opacity: 0.7
+              }}
+            ></div>
+            
+            <button
+              onClick=${handleDismissMetrics}
+              className="absolute top-2 right-2 p-1 rounded-full transition-all duration-200 z-10"
+              style=${{
+                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                color: darkMode ? WHITE : DARK_TEAL
+              }}
+              aria-label="Close metrics panel"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            
+            <div className="relative z-10">
+              <h3 
+                className="text-base font-bold mb-2 flex items-center gap-2"
+                style=${{ color: darkMode ? WHITE : DARK_TEAL }}
+              >
+                <span className="material-icons text-sm">insights</span>
+                Marketplace Metrics
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div 
+                  className="p-2 rounded-lg"
+                  style=${{ 
+                    backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)'
+                  }}
+                >
+                  <div className="text-md font-bold mb-1" style=${{ opacity: 0.85, color: darkMode ? WHITE : DARK_TEAL }}>Total Sold Items</div>
+                  <div 
+                    className="text-2xl font-bold"
+                    style=${{ color: darkMode ? LIGHT_TEAL : DARK_TEAL }}
+                  >
+                    ${metrics.soldCount}
+                  </div>
+                </div>
+                
+                <div 
+                  className="p-2 rounded-lg"
+                  style=${{ 
+                    backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)'
+                  }}
+                >
+                  <div className="text-md font-bold mb-1" style=${{ opacity: 0.85, color: darkMode ? WHITE : DARK_TEAL }}>Trading Volume</div>
+                  <div 
+                    className="text-2xl font-bold"
+                    style=${{ color: darkMode ? LIGHT_TEAL : DARK_TEAL }}
+                  >
+                    $${Number(metrics.totalValue).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         `}
         
